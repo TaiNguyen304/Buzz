@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thí sinh - Bấm chuông</title>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <style>
+        /* Global Styles */
+        body {
+            background-color: #F3F4F6; /* bg-gray-100 */
+            color: #111827; /* text-gray-900 */
+            font-family: Arial, Helvetica, sans-serif; /* font-sans */
+            padding: 1.5rem; /* p-6 */
+            display: flex;
+            align-items: center; /* items-center */
+            justify-content: center; /* justify-center */
+            min-height: 100vh; /* min-h-screen */
+        }
+
+        .container {
+            max-width: 32rem; /* max-w-lg */
+            margin-left: auto; /* mx-auto */
+            margin-right: auto; /* mx-auto */
+            width: 100%; /* w-full */
+        }
+
+        /* Login Section */
+        #loginSection {
+            background-color: #FFFFFF; /* bg-white */
+            padding: 2rem; /* p-8 */
+            border-radius: 1rem; /* rounded-2xl */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-lg */
+        }
+
+        #loginSection h1 {
+            font-size: 1.875rem; /* text-3xl */
+            font-weight: bold; /* font-bold */
+            margin-bottom: 1.5rem; /* mb-6 */
+            text-align: center; /* text-center */
+            color: blue; /* text-blue-600 */
+        }
+
+        .space-y-4 > div {
+            margin-bottom: 1rem; /* space-y-4 */
+        }
+
+        label {
+            display: block;
+            font-size: 0.875rem; /* text-sm */
+            font-weight: bold; /* font-medium */
+            color: purple; /* text-gray-700 */
+            margin-bottom: 0.25rem; /* mb-1 */
+            text-align: center;
+            align-items: center;
+        }
+
+        input[type="number"], input[type="text"] {
+            width: 94%;
+            padding: 0.75rem; /* p-3 */
+            border: 1px solid #D1D5DB; /* border border-gray-300 */
+            border-radius: 0.5rem; /* rounded-lg */
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* shadow-sm */
+            font-size: 1.125rem; /* text-lg */
+            text-align: center;
+            align-items: center;
+            font-weight: bold;
+        }
+        input[type="number"] {
+            font-family: Arial, Helvetica, sans-serif, monospace; /* font-mono */
+        }
+        input[type="number"]:focus, input[type="text"]:focus {
+            outline: 2px solid transparent;
+            outline-offset: 2px;
+            border-color: purple; 
+            box-shadow: 0 0 0 3px purple; /* ring-blue-500 */
+        }
+
+        #joinRoomBtn {
+            padding: 0.75rem 1rem; /* py-3 px-4 */
+            border-radius: 0.5rem; /* rounded-lg */
+            font-weight: bold; /* font-bold */
+            transition-property: all; /* transition-colors duration-200 */
+            transition-duration: 200ms;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06); /* shadow-md */
+            background-color: yellow; /* bg-yellow-500 */
+            color: #000000; /* text-black */
+            width: 100%; /* w-full */
+            font-size: 1.125rem; /* text-lg */
+            border: none;
+            cursor: pointer;
+        }
+        #joinRoomBtn:hover {
+            background-color: orange; /* hover:bg-orange-500 */
+            color: #FFFFFF; /* hover:text-white */
+        }
+
+        #errorMessage {
+            color: red; /* text-red-600 */
+            text-align: center; /* text-center */
+            font-weight: bold; /* font-medium */
+            margin-top: 1rem; /* mt-4 */
+        }
+
+        /* Buzzer Section */
+        #buzzerSection {
+            text-align: center; /* text-center */
+        }
+
+        #buzzerSection h2 {
+            font-size: 1.5rem; /* text-2xl */
+            font-weight: bold; /* font-bold */
+            margin-bottom: 1rem; /* mb-4 */
+        }
+
+        #roomCodeDisplay {
+            font-family: Arial, Helvetica, sans-serif, monospace; /* font-mono */
+            color: blue; /* text-blue-600 */
+        }
+
+        #buzzerSection h3 {
+            font-size: 1.25rem; /* text-xl */
+            font-weight: bold; /* font-semibold */
+            margin-bottom: 1.5rem; /* mb-6 */
+        }
+
+        #usernameDisplay {
+            color: purple; /* text-indigo-600 */
+        }
+
+        .buzzer-controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* items-center */
+            gap: 1.25rem; /* space-y-5 */
+        }
+
+        #buzzerBtn {
+            /* Base styles (common for all states, but overridden by JS) */
+            width: 500px; /* w-[500px] */
+            height: 100px; /* h-[50px] */
+            font-size: 1.875rem; /* text-3xl */
+            font-weight: bold; /* font-extrabold */
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-lg */
+            transition-property: all; /* transition-all */
+            transition-duration: 200ms; /* duration-200 */
+            transform-origin: center;
+            border: none;
+        }
+        
+        #buzzerBtn.active {
+            background-color: green; /* bg-green-500 */
+            color: #FFFFFF; /* text-white */
+            cursor: pointer;
+        }
+        #buzzerBtn.active:hover {
+            background-color: orange; /* hover:bg-orange-500 */
+            transform: scale(1.05); /* hover:scale-105 */
+        }
+        #buzzerBtn.buzzed {
+            background-color: blue; /* bg-blue-600 */
+            color: #FFFFFF; /* text-white */
+            cursor: not-allowed;
+        }
+        #buzzerBtn.locked {
+            background-color: red; /* bg-red-600 */
+            color: #FFFFFF; /* text-white */
+            cursor: not-allowed;
+        }
+
+        /* Buzzer Status Display */
+        #buzzerStatus {
+            width: 100%; /* w-full */
+            max-width: 32rem; /* max-w-lg */
+            height: 3rem; /* h-12 */
+            display: flex;
+            align-items: center; /* items-center */
+            justify-content: center; /* justify-center */
+            font-size: 1.125rem; /* text-lg */
+            font-weight: bold; /* font-bold */
+            border-radius: 0.5rem; /* rounded-lg */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06); /* shadow-md */
+        }
+        #buzzerStatus.status-waiting {
+            background-color: #ff00cc;
+            color: #FFFFFF; /* text-white */
+        }
+        #buzzerStatus.status-active {
+            background-color: green;
+            color: white; 
+        }
+        #buzzerStatus.status-buzzed {
+            background-color: red; /* bg-red-600 */
+            color: #FFFFFF; /* text-white */
+        }
+    </style>
+    </head>
+<body class="bg-gray-100 text-gray-900 font-sans p-6 flex items-center justify-center min-h-screen">
+
+    <div class="container">
+        
+        <div id="loginSection">
+            <h1>Tham gia phòng</h1>
+            <div class="space-y-4">
+                <div>
+                    <label for="roomCodeInput">Mã phòng (6 chữ số):</label>
+                    <input type="number" id="roomCodeInput" maxlength="6">
+                </div>
+                <div>
+                    <label for="usernameInput">Username (Tên của bạn):</label>
+                    <input type="text" id="usernameInput">
+                </div>
+                <button id="joinRoomBtn">Xác nhận</button>
+            </div>
+            <p id="errorMessage"></p>
+        </div>
+
+        <div id="buzzerSection" style="display: none;">
+            <h2>Phòng <span id="roomCodeDisplay"></span></h2>
+            <h3>Chào, <span id="usernameDisplay"></span></h3>
+            
+            <div class="buzzer-controls">
+                <button id="buzzerBtn" disabled>Đang kết nối...</button>
+                <div id="buzzerStatus" class="status-waiting">Vui lòng chờ Host...</div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+    // --- KHAI BÁO SOCKET.IO ---
+    const SERVER_URL = 'http://localhost:3000'; // Thay bằng URL server của bạn khi triển khai
+    const socket = io(SERVER_URL);
+    
+    // Import thư viện Socket.IO client (cần đặt trước script này)
+
+    // Biến toàn cục
+    let userId = null; 
+    let currentRoomId = null;
+    let username = null;
+    let currentRoomData = null;
+    let iHaveBuzzed = false;
+    let myBuzzTime = null; 
+    
+    // --- CÁC BIẾN DOM ---
+    const loginSection = document.getElementById('loginSection');
+    const buzzerSection = document.getElementById('buzzerSection');
+    const buzzerBtn = document.getElementById('buzzerBtn');
+    const buzzerStatus = document.getElementById('buzzerStatus');
+    const errorMessage = document.getElementById('errorMessage');
+
+    // --- SOCKET LISTENERS ---
+    socket.on('connect', () => {
+        userId = `user-${socket.id}`; // Tạm gán userId = socket.id (sẽ được server gán lại)
+        document.getElementById('joinRoomBtn').textContent = 'Xác nhận';
+        document.getElementById('joinRoomBtn').disabled = false;
+        console.log("Connected to server. Temp User ID:", userId);
+    });
+
+    socket.on('joinRoomError', (data) => {
+        errorMessage.textContent = data.message;
+    });
+
+    socket.on('roomJoined', (data) => {
+        currentRoomId = data.roomId;
+        username = data.username;
+        userId = data.userId; // Cập nhật userId chính thức từ server
+        
+        // Chuyển giao diện
+        loginSection.style.display = 'none';
+        buzzerSection.style.display = 'block';
+        document.getElementById('roomCodeDisplay').textContent = currentRoomId;
+        document.getElementById('usernameDisplay').textContent = username;
+        errorMessage.textContent = "";
+        
+        // Đặt lại trạng thái bấm chuông
+        iHaveBuzzed = false;
+        myBuzzTime = null;
+        updateBuzzerUI();
+    });
+
+    socket.on('roomClosed', (data) => {
+        setBuzzerState("locked", data.message);
+        setTimeout(() => window.location.reload(), 3000); // Tự động load lại
+    });
+
+    socket.on('roomStateUpdate', (data) => {
+        const oldSessionId = currentRoomData ? currentRoomData.bellSessionId : null;
+        currentRoomData = data;
+
+        // Nếu Host reset chuông (bellSessionId thay đổi)
+        if (oldSessionId && oldSessionId !== currentRoomData.bellSessionId) {
+            iHaveBuzzed = false;
+            myBuzzTime = null; 
+        }
+        
+        // Kiểm tra xem mình đã bấm chuông chưa
+        const myBuzz = currentRoomData.buzzes.find(b => b.userId === userId && b.bellSessionId === currentRoomData.bellSessionId);
+        if (myBuzz) {
+            iHaveBuzzed = true;
+            myBuzzTime = myBuzz.time;
+        } else {
+             // Mở khóa nếu không phải single buzz hoặc single buzz nhưng chưa bấm
+            if(currentRoomData.options.buzzCount === 'multiple' || !iHaveBuzzed) {
+                iHaveBuzzed = false;
+                myBuzzTime = null;
+            }
+        }
+
+        updateBuzzerUI();
+    });
+
+    // --- XỬ LÝ THAM GIA PHÒNG ---
+    function joinRoom() {
+        if (!userId) {
+            errorMessage.textContent = "Đang chờ kết nối server, vui lòng thử lại.";
+            return;
+        }
+        
+        const roomId = document.getElementById('roomCodeInput').value;
+        const inputUsername = document.getElementById('usernameInput').value.trim();
+        
+        if (!roomId || roomId.length !== 6) {
+            errorMessage.textContent = "Mã phòng phải là 6 chữ số.";
+            return;
+        }
+        if (!inputUsername) {
+            errorMessage.textContent = "Vui lòng nhập Username.";
+            return;
+        }
+        
+        errorMessage.textContent = "Đang tham gia phòng...";
+        document.getElementById('joinRoomBtn').disabled = true;
+        
+        socket.emit('joinRoom', { roomId, username: inputUsername });
+    }
+    
+    // --- CẬP NHẬT GIAO DIỆN CHUÔNG ---
+    function setBuzzerState(state, message) {
+        buzzerBtn.disabled = true;
+        buzzerBtn.className = "";
+        buzzerStatus.className = "";
+
+        if (state === 'active') {
+            buzzerBtn.disabled = false;
+            buzzerBtn.textContent = "BẤM CHUÔNG!";
+            buzzerBtn.classList.add('active');
+            
+            buzzerStatus.textContent = "Sẵn sàng bấm!";
+            buzzerStatus.classList.add('status-active');
+
+        } else if (state === 'buzzed') {
+            buzzerBtn.textContent = "Đã bấm"; 
+            buzzerBtn.classList.add('buzzed');
+            
+            buzzerStatus.textContent = message; 
+            buzzerStatus.classList.add('status-buzzed');
+
+        } else if (state === 'locked') {
+             buzzerBtn.textContent = message;
+             buzzerBtn.classList.add('locked');
+             
+             buzzerStatus.textContent = message;
+             buzzerStatus.classList.add('status-waiting');
+        }
+    }
+    
+    function updateBuzzerUI() {
+        if (!currentRoomData) {
+            setBuzzerState("locked", "Đang tải...");
+            return;
+        }
+        
+        // 1. Bị host khóa?
+        if (currentRoomData.lockedUsers.includes(userId)) {
+            setBuzzerState("locked", "Bạn đã bị Host khóa chuông");
+            return;
+        }
+        
+        // 2. Chuông đang khóa?
+        if (currentRoomData.bellStatus === 'locked') {
+            setBuzzerState("locked", "Chuông đang khóa");
+            return;
+        }
+        
+        // 3. Đã bấm chuông (và chỉ được bấm 1 lần)?
+        if (iHaveBuzzed && currentRoomData.options.buzzCount === 'single') {
+            const timeMessage = myBuzzTime !== null && myBuzzTime >= 0
+                ? `Đã bấm chuông: ${myBuzzTime.toFixed(3)}s` 
+                : "Bạn đã bấm chuông!";
+            setBuzzerState("buzzed", timeMessage);
+            return;
+        }
+        
+        // 4. Chuông đang mở
+        if (currentRoomData.bellStatus.startsWith('open')) {
+            setBuzzerState("active", "BẤM CHUÔNG!");
+            return;
+        }
+        
+        // Mặc định
+        setBuzzerState("locked", "Đang chờ Host...");
+    }
+    
+    // --- XỬ LÝ BẤM CHUÔNG ---
+    function handleBuzzerClick() {
+        if (!currentRoomData || !userId || buzzerBtn.disabled) return;
+        
+        // Tạm khóa UI ngay lập tức
+        setBuzzerState("buzzed", "Đã bấm!"); 
+        
+        socket.emit('buzz', { 
+            roomId: currentRoomId, 
+            username: username, 
+            userId: userId,
+            bellSessionId: currentRoomData.bellSessionId
+        });
+        
+        // UI sẽ được cập nhật chính thức khi server gửi lại 'roomStateUpdate'
+    }
+
+    // --- GẮN SỰ KIỆN ---
+    document.getElementById('joinRoomBtn').addEventListener('click', joinRoom);
+    buzzerBtn.addEventListener('click', handleBuzzerClick);
+
+    // Cập nhật UI lần đầu
+    setBuzzerState("locked", "Vui lòng chờ Host...");
+
+</script>
+</body>
+</html>
