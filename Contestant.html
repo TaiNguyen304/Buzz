@@ -391,10 +391,10 @@
             username = data.username;
 
             // --- SỬA LỖI TẠI ĐÂY ---
-            // Chỉ cập nhật userId nếu server thực sự gửi nó về,
-            // nếu không, chúng ta giữ nguyên userId tạm thời đã tạo lúc kết nối.
+            // Luôn lưu userId dưới dạng STRING để đảm bảo so sánh
+            // với mảng lockedUsers (luôn là mảng string) được chính xác.
             if (data.userId) {
-                userId = data.userId; // Cập nhật userId chính thức từ server
+                userId = String(data.userId); // <-- ĐÂY LÀ DÒNG SỬA LỖI
             }
             // Nếu data.userId không tồn tại, userId vẫn giữ giá trị từ 'connect'
 
@@ -509,7 +509,7 @@
             }
 
             // 1. Bị host khóa? (LOGIC ĐÃ CẬP NHẬT: ƯU TIÊN KIỂM TRA KHÓA HOST)
-            // Kiểm tra xem userId HOẶC username của người chơi có nằm trong danh sách lockedUsers không
+            // Kiểm tra xem userId (đã là string) HOẶC username của người chơi có nằm trong danh sách lockedUsers không
             const isLockedByHost = currentRoomData.lockedUsers.includes(userId) || currentRoomData.lockedUsers.includes(username);
 
             if (isLockedByHost) {
