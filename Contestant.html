@@ -378,7 +378,16 @@
         socket.on('roomJoined', (data) => {
             currentRoomId = data.roomId;
             username = data.username;
-            userId = data.userId; // Cập nhật userId chính thức từ server
+            
+            // --- SỬA LỖI TẠI ĐÂY ---
+            // Chỉ cập nhật userId nếu server thực sự gửi nó về,
+            // nếu không, chúng ta giữ nguyên userId tạm thời đã tạo lúc kết nối.
+            if (data.userId) {
+                userId = data.userId; // Cập nhật userId chính thức từ server
+            }
+            // Nếu data.userId không tồn tại, userId vẫn giữ giá trị từ 'connect'
+
+            console.log("Room Joined. Final UserID is:", userId); // Thêm log để kiểm tra
 
             // Chuyển giao diện
             loginSection.style.display = 'none';
