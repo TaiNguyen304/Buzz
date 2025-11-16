@@ -391,13 +391,18 @@
             username = data.username;
 
             // --- SỬA LỖI TẠI ĐÂY ---
-            // Luôn lưu userId dưới dạng STRING để đảm bảo so sánh
-            // với mảng lockedUsers (luôn là mảng string) được chính xác.
-            if (data.userId) {
-                userId = String(data.userId); // <-- ĐÂY LÀ DÒNG SỬA LỖI
-            }
-            // Nếu data.userId không tồn tại, userId vẫn giữ giá trị từ 'connect'
+            // Đảm bảo lấy đúng userId, dù server gửi về 'userId', 'id', hay 'socketId'
+            // và luôn chuyển nó thành STRING, giống hệt cách Host làm.
+            let resolvedId = null;
+            if (data.userId) resolvedId = data.userId;
+            else if (data.id) resolvedId = data.id;
+            else if (data.socketId) resolvedId = data.socketId;
 
+            if (resolvedId) {
+                userId = String(resolvedId); // <-- Luôn là String
+            }
+            // Nếu không tìm thấy, userId sẽ giữ nguyên giá trị 'user-socket.id' từ 'connect'
+            
             console.log("Room Joined. Final UserID is:", userId); // Thêm log để kiểm tra
 
             // Chuyển giao diện
@@ -429,23 +434,25 @@
             }
 
             // Luôn kiểm tra xem mình đã bấm chuông chưa trong phiên hiện tại
-            const myBuzz = currentRoomData.buzzes.find(b => b.userId === userId && b.bellSessionId === currentRoomData.bellSessionId);
+            // Sửa logic: phải kiểm tra cả userId và bellSessionId
+            const myBuzzInThisSession = currentRoomData.buzzes.find(b => b.userId === userId && b.bellSessionId === currentRoomData.bellSessionId);
 
-            if (myBuzz) {
+            if (myBuzzInThisSession) {
                 iHaveBuzzed = true;
-                myBuzzTime = myBuzz.time;
+                myBuzzTime = myBuzzInThisSession.time;
             } else {
-                // Nếu chế độ là multiple buzz HOẶC nếu đã bấm (iHaveBuzzed là true) nhưng Host reset (myBuzz là null)
-                // Ta chỉ reset iHaveBuzzed = false nếu myBuzz là null.
-                if (!myBuzz) {
-                    iHaveBuzzed = false;
-                    myBuzzTime = null;
-                }
+                // Nếu không tìm thấy lượt bấm trong phiên này, ta reset trạng thái
+                // (Chỉ reset nếu chế độ là 'single' hoặc nếu không tìm thấy)
+                // Logic này được đơn giản hóa:
+                // Nếu không tìm thấy, nghĩa là chưa bấm trong phiên này.
+                iHaveBuzzed = false;
+                myBuzzTime = null;
             }
 
             // Luôn cập nhật UI dựa trên trạng thái mới nhất
             updateBuzzerUI();
         });
+
 
         // --- XỬ LÝ THAM GIA PHÒNG ---
         function joinRoom() {
@@ -508,9 +515,10 @@
                 return;
             }
 
-            // 1. Bị host khóa? (LOGIC ĐÃ CẬP NHẬT: ƯU TIÊN KIỂM TRA KHÓA HOST)
-            // Kiểm tra xem userId (đã là string) HOẶC username của người chơi có nằm trong danh sách lockedUsers không
-            const isLockedByHost = currentRoomData.lockedUsers.includes(userId) || currentRoomData.lockedUsers.includes(username);
+            // 1. Bị host khóa? 
+            // Thêm một bước kiểm tra an toàn cho currentRoomData.lockedUsers
+            const lockedUsersList = currentRoomData.lockedUsers || [];
+            const isLockedByHost = lockedUsersList.includes(userId) || lockedUsersList.includes(username);
 
             if (isLockedByHost) {
                 setBuzzerState("locked", "Bạn đã bị Host khóa chuông");
