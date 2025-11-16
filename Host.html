@@ -652,10 +652,34 @@
                 return;
             }
 
+            const isMultipleBuzz = currentRoomData.options.buzzCount === 'multiple';
+            let latestBuzzPerUser = new Map(); // Lưu trữ lượt bấm muộn nhất của mỗi người
+
+            if (isMultipleBuzz) {
+                // Nhóm theo username và tìm lượt bấm lớn nhất (muộn nhất)
+                buzzes.forEach(buzz => {
+                    const currentLatestTime = latestBuzzPerUser.get(buzz.username);
+                    if (currentLatestTime === undefined || buzz.time > currentLatestTime.time) {
+                        latestBuzzPerUser.set(buzz.username, buzz);
+                    }
+                });
+            }
+
             tableBody.innerHTML = buzzes.map(buzz => {
                 const timeDiff = buzz.time;
+
+                let rowClass = "";
+                // Kiểm tra xem đây có phải là lượt bấm muộn nhất của người này trong chế độ multiple buzz hay không
+                if (isMultipleBuzz) {
+                    const latestBuzz = latestBuzzPerUser.get(buzz.username);
+                    // So sánh bằng userId và time để đảm bảo chỉ highlight 1 lần bấm chuông duy nhất
+                    if (latestBuzz && latestBuzz.userId === buzz.userId && latestBuzz.time === buzz.time) {
+                        rowClass = "latest-buzz";
+                    }
+                }
+
                 return `
-                <tr>
+                <tr class="${rowClass}">
                     <td style="width: 50%;">${buzz.username}</td>
                     <td style="width: 50%;">${timeDiff.toFixed(3)}s</td>
                 </tr>
