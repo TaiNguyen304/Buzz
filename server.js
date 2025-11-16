@@ -10,13 +10,12 @@ const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
         // Cho phép frontend kết nối từ mọi nguồn
-        origin: "*", 
+        origin: "https://tainguyen304.github.io", 
         methods: ["GET", "POST"]
     }
 });
 
-// Port mặc định
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 // ==========================================================
 // CƠ SỞ DỮ LIỆU GIẢ LẬP (In-Memory Database)
@@ -247,8 +246,6 @@ io.on('connection', (socket) => {
     });
 });
 
-// Phục vụ các file tĩnh (Host.html và Contestant.html)
-app.use(express.static('./'));
 
 server.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
