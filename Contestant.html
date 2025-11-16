@@ -69,6 +69,16 @@
         input[type="number"] {
             font-family: Arial, Helvetica, sans-serif, monospace; /* font-mono */
         }
+        
+        /* CHỈNH SỬA YÊU CẦU 6: Mã phòng màu tím, chữ đậm trắng */
+        #roomCodeInput {
+            background-color: white;
+            color: black !important; /* Dùng !important để ghi đè màu chung */
+            font-weight: bold;
+            border-color: purple; 
+            box-shadow: 0 0 0 3px purple; /* ring-blue-500 */
+        }
+
         input[type="number"]:focus, input[type="text"]:focus {
             outline: 2px solid transparent;
             outline-offset: 2px;
@@ -230,8 +240,8 @@
 
     <script>
     // --- KHAI BÁO SOCKET.IO ---
-    // !!! BẠN CẦN THAY THẾ DÒNG NÀY BẰNG ĐỊA CHỈ IP/DOMAIN CÔNG CỘNG CỦA MÁY CHỦ SOCKET.IO CỦA BẠN !!!
-    const SERVER_URL = 'https://your-public-server-url.com:3000'; 
+    // ĐÃ SỬA: Trả về localhost để chạy thử nghiệm cục bộ
+    const SERVER_URL = 'https://buzz-l8zf.onrender.com'; 
     const socket = io(SERVER_URL);
     
     // Import thư viện Socket.IO client (cần đặt trước script này)
@@ -261,6 +271,7 @@
 
     socket.on('joinRoomError', (data) => {
         errorMessage.textContent = data.message;
+        document.getElementById('joinRoomBtn').disabled = false; // Mở lại nút nếu lỗi
     });
 
     socket.on('roomJoined', (data) => {
@@ -373,8 +384,11 @@
             return;
         }
         
-        // 1. Bị host khóa?
-        if (currentRoomData.lockedUsers.includes(userId)) {
+        // 1. Bị host khóa? (LOGIC ĐÃ CẬP NHẬT)
+        // Kiểm tra xem userId HOẶC username của người chơi có nằm trong danh sách lockedUsers không
+        const isLockedByHost = currentRoomData.lockedUsers.includes(userId) || currentRoomData.lockedUsers.includes(username);
+
+        if (isLockedByHost) {
             setBuzzerState("locked", "Bạn đã bị Host khóa chuông");
             return;
         }
