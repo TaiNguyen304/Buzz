@@ -292,6 +292,17 @@
             color: #000000;
             /* text-black */
         }
+        
+        /* CSS cho tính năng Bổ sung (Tô màu lượt bấm muộn nhất) */
+        .latest-buzz {
+            background-color: blue !important;
+            color: white !important;
+        }
+        .latest-buzz td {
+            background-color: blue !important;
+            color: white !important;
+            font-weight: bold;
+        }
 
         /* Modal Styles */
         .modal-overlay {
@@ -626,13 +637,13 @@
             display.textContent = 'CHUÔNG ĐANG KHÓA';
 
             if (status === 'open_infinite') {
-                display.style.backgroundColor = 'green';
+                display.style.backgroundColor = 'blue'; // Dùng màu xanh dương cho infinite (ví dụ)
                 display.textContent = 'CHUÔNG ĐANG MỞ (VÔ HẠN)';
             } else if (status === 'open_timed') {
-                display.style.backgroundColor = '#ff00cc';
+                display.style.backgroundColor = 'green';
                 display.textContent = 'CHUÔNG ĐANG MỞ (CÓ GIỚI HẠN)';
             } else if (status === 'locked_winner') {
-                display.style.backgroundColor = 'blue';
+                display.style.backgroundColor = '#ff00cc';
                 display.textContent = 'ĐÃ CÓ NGƯỜI THẮNG! (CHUÔNG ĐÃ KHÓA)';
             }
         }
@@ -658,22 +669,25 @@
             if (isMultipleBuzz) {
                 // Nhóm theo username và tìm lượt bấm lớn nhất (muộn nhất)
                 buzzes.forEach(buzz => {
-                    const currentLatestTime = latestBuzzPerUser.get(buzz.username);
-                    if (currentLatestTime === undefined || buzz.time > currentLatestTime.time) {
+                    // Lấy thời gian hiện tại của buzz, nếu là null/undefined thì coi là 0 để so sánh
+                    const buzzTime = buzz.time || 0; 
+                    const currentLatest = latestBuzzPerUser.get(buzz.username);
+                    
+                    if (currentLatest === undefined || buzzTime > (currentLatest.time || 0)) {
                         latestBuzzPerUser.set(buzz.username, buzz);
                     }
                 });
             }
 
             tableBody.innerHTML = buzzes.map(buzz => {
-                const timeDiff = buzz.time;
+                const timeDiff = buzz.time !== undefined && buzz.time !== null ? buzz.time : 0; // Đảm bảo timeDiff là số
 
                 let rowClass = "";
                 // Kiểm tra xem đây có phải là lượt bấm muộn nhất của người này trong chế độ multiple buzz hay không
                 if (isMultipleBuzz) {
                     const latestBuzz = latestBuzzPerUser.get(buzz.username);
                     // So sánh bằng userId và time để đảm bảo chỉ highlight 1 lần bấm chuông duy nhất
-                    if (latestBuzz && latestBuzz.userId === buzz.userId && latestBuzz.time === buzz.time) {
+                    if (latestBuzz && latestBuzz.userId === buzz.userId && (latestBuzz.time || 0) === timeDiff) {
                         rowClass = "latest-buzz";
                     }
                 }
@@ -861,7 +875,8 @@
                     lockBell();
                 }, duration * 1000);
             }
-            await updateRoom({ bellStatus: status, reset: false }); // Gửi trạng thái mới, không reset
+            // Gửi trạng thái mới, không reset. Server phải thiết lập bellOpenTimestamp
+            await updateRoom({ bellStatus: status, reset: false }); 
         }
 
         async function lockBell() {

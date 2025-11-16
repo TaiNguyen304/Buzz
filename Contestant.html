@@ -304,6 +304,17 @@
             color: #FFFFFF;
             /* text-white */
         }
+
+        .latest-buzz {
+            background-color: blue !important;
+            color: white !important;
+        }
+
+        .latest-buzz td {
+            background-color: blue !important;
+            color: white !important;
+            font-weight: bold;
+        }
     </style>
 </head>
 
@@ -378,7 +389,7 @@
         socket.on('roomJoined', (data) => {
             currentRoomId = data.roomId;
             username = data.username;
-            
+
             // --- SỬA LỖI TẠI ĐÂY ---
             // Chỉ cập nhật userId nếu server thực sự gửi nó về,
             // nếu không, chúng ta giữ nguyên userId tạm thời đã tạo lúc kết nối.
@@ -497,7 +508,7 @@
                 return;
             }
 
-            // 1. Bị host khóa? (LOGIC ĐÃ CẬP NHẬT)
+            // 1. Bị host khóa? (LOGIC ĐÃ CẬP NHẬT: ƯU TIÊN KIỂM TRA KHÓA HOST)
             // Kiểm tra xem userId HOẶC username của người chơi có nằm trong danh sách lockedUsers không
             const isLockedByHost = currentRoomData.lockedUsers.includes(userId) || currentRoomData.lockedUsers.includes(username);
 
@@ -506,8 +517,8 @@
                 return;
             }
 
-            // 2. Chuông đang khóa?
-            if (currentRoomData.bellStatus === 'locked') {
+            // 2. Chuông đang khóa (hoặc đã có người thắng trong chế độ single-winner)?
+            if (currentRoomData.bellStatus === 'locked' || currentRoomData.bellStatus === 'locked_winner') {
                 setBuzzerState("locked", "Chuông đang khóa");
                 return;
             }
@@ -521,7 +532,7 @@
                 return;
             }
 
-            // 4. Chuông đang mở
+            // 4. Chuông đang mở (Sau khi đã kiểm tra bị khóa và chế độ single buzz)
             if (currentRoomData.bellStatus.startsWith('open')) {
                 setBuzzerState("active", "BẤM CHUÔNG!");
                 return;
