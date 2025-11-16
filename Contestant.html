@@ -298,26 +298,19 @@
     });
 
     socket.on('roomStateUpdate', (data) => {
-        const oldSessionId = currentRoomData ? currentRoomData.bellSessionId : null;
         currentRoomData = data;
-
-        // Nếu Host reset chuông (bellSessionId thay đổi)
-        if (oldSessionId && oldSessionId !== currentRoomData.bellSessionId) {
-            iHaveBuzzed = false;
-            myBuzzTime = null; 
-        }
         
-        // Kiểm tra xem mình đã bấm chuông chưa
+        // Luôn kiểm tra lại trạng thái bấm chuông của người chơi trong phiên hiện tại
         const myBuzz = currentRoomData.buzzes.find(b => b.userId === userId && b.bellSessionId === currentRoomData.bellSessionId);
+        
         if (myBuzz) {
+            // Người chơi đã bấm chuông trong phiên này
             iHaveBuzzed = true;
             myBuzzTime = myBuzz.time;
         } else {
-             // Mở khóa nếu không phải single buzz hoặc single buzz nhưng chưa bấm
-            if(currentRoomData.options.buzzCount === 'multiple' || !iHaveBuzzed) {
-                iHaveBuzzed = false;
-                myBuzzTime = null;
-            }
+            // Người chơi chưa bấm chuông trong phiên này HOẶC Host đã reset chuông
+            iHaveBuzzed = false;
+            myBuzzTime = null;
         }
 
         updateBuzzerUI();
