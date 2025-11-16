@@ -523,10 +523,21 @@
         }
 
         // --- XỬ LÝ BẤM CHUÔNG ---
+        // Contestant.html
         function handleBuzzerClick() {
+            console.log("handleBuzzerClick CALLED"); // <-- THÊM DÒNG 1
+
             // Thêm kiểm tra bellSessionId
             if (!currentRoomData || !userId || buzzerBtn.disabled || !currentRoomData.bellSessionId) {
-                console.warn("Cannot buzz: Missing required data (currentRoomData, userId, or bellSessionId).");
+
+                // THÊM CÁC LOG CHI TIẾT NÀY VÀO
+                console.warn("--- BUZZ FAILED ---");
+                console.warn("!currentRoomData: ", !currentRoomData);
+                console.warn("!userId: ", !userId);
+                console.warn("buzzerBtn.disabled: ", buzzerBtn.disabled);
+                console.warn("!currentRoomData.bellSessionId: ", !currentRoomData.bellSessionId);
+                console.warn("currentRoomData: ", currentRoomData); // In ra toàn bộ data
+                console.warn("---------------------");
                 return;
             }
 
