@@ -230,7 +230,8 @@
 
     <script>
     // --- KHAI BÁO SOCKET.IO ---
-    const SERVER_URL = 'http://localhost:3000'; // Thay bằng URL server của bạn khi triển khai
+    // !!! BẠN CẦN THAY THẾ DÒNG NÀY BẰNG ĐỊA CHỈ IP/DOMAIN CÔNG CỘNG CỦA MÁY CHỦ SOCKET.IO CỦA BẠN !!!
+    const SERVER_URL = 'https://your-public-server-url.com:3000'; 
     const socket = io(SERVER_URL);
     
     // Import thư viện Socket.IO client (cần đặt trước script này)
