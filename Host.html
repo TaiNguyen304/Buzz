@@ -114,6 +114,12 @@
             color: #FFFFFF;
             /* text-white */
         }
+        
+        /* NÚT MỚI: THAM GIA PHÒNG */
+        #joinRoomBtn {
+            background-color: purple;
+            color: #FFFFFF;
+        }
 
         #roomCodeDisplay {
             display: none;
@@ -189,6 +195,22 @@
             box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
             /* shadow-sm */
             font-weight: bold;
+        }
+        
+        /* CSS cho Input Text trong Modal */
+        input[type="text"].modal-input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #D1D5DB; /* border-gray-300 */
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            font-weight: bold;
+        }
+        input[type="text"].modal-input:focus {
+            outline: 2px solid transparent;
+            outline-offset: 2px;
+            border-color: #ff00cc; 
+            box-shadow: 0 0 0 3px #ff00cc; 
         }
 
         input[type="number"]:focus {
@@ -303,6 +325,12 @@
             color: white !important;
             font-weight: bold;
         }
+        
+        /* CSS MỚI: Màu chữ cho Quản lý trong danh sách */
+        .text-red-600 {
+            color: red;
+            font-weight: bold;
+        }
 
         /* Modal Styles */
         .modal-overlay {
@@ -380,6 +408,13 @@
             color: #FFFFFF;
             /* text-white */
         }
+        
+        /* CSS MỚI: Nút Xác nhận (Join Room) */
+        #confirmJoinBtn {
+            background-color: green;
+            color: white;
+            font-weight: bold;
+        }
 
         #resetAllLocksBtn {
             background-color: rgb(255, 255, 0);
@@ -408,7 +443,7 @@
             text-align: left;
             /* text-left */
             display: inline;
-            color: #111827;
+            color: black;
             /* text-gray-900 */
             font-weight: normal;
             /* font-normal */
@@ -435,6 +470,21 @@
             margin-bottom: 0;
             text-align: left;
         }
+        
+        /* CSS MỚI: Label trong Modal Tham gia phòng */
+        #joinRoomModal label {
+            text-align: left;
+            color: #111827; /* gray-900 */
+            margin-bottom: 0.5rem;
+            font-size: 1rem; /* text-base */
+        }
+        /* CSS MỚI: Khoảng cách trong Modal Tham gia phòng */
+        #joinRoomModal .modal-body {
+             display: flex;
+             flex-direction: column;
+             gap: 1rem; /* space-y-4 */
+             max-height: none; /* Bỏ giới hạn chiều cao cho modal đơn giản này */
+        }
     </style>
 </head>
 
@@ -445,6 +495,7 @@
 
         <div class="flex-wrap">
             <button id="createRoomBtn" disabled>Đang kết nối Server...</button>
+            <button id="joinRoomBtn" disabled>Đang kết nối...</button>
             <div id="roomCodeDisplay">Mã phòng: </div>
             <button id="showParticipantsBtn" disabled>Danh sách tham gia</button>
         </div>
@@ -532,16 +583,18 @@
                 <div>
                     <h3 class="font-bold text-lg mb-2">Chế độ người thắng:</h3>
                     <div class="flex flex-col space-y-2">
-                        <div class="flex items-center">
-                            <input type="radio" id="opt-single-winner" name="buzzMode" value="single-winner" checked
-                                class="mr-3">
-                            <label for="opt-single-winner" class="text-base text-gray-900">Một người bấm: Khóa chuông
-                                ngay lập tức</label>
-                        </div>
-                        <div class="flex items-center">
-                            <input type="radio" id="opt-all-buzz" name="buzzMode" value="all-buzz" class="mr-3">
-                            <label for="opt-all-buzz" class="text-base text-gray-900">Tất cả đều bấm: Chỉ khóa chuông
-                                khi Host bấm Khóa</label>
+                        <div class="flex flex-col space-y-2">
+                            <div class="flex items-center">
+                                <input type="radio" id="opt-single-winner" name="buzzMode" value="single-winner" checked
+                                    class="mr-3">
+                                <label for="opt-single-winner" class="text-base text-gray-900">Một người bấm: Khóa chuông
+                                    ngay lập tức</label>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="radio" id="opt-all-buzz" name="buzzMode" value="all-buzz" class="mr-3">
+                                <label for="opt-all-buzz" class="text-base text-gray-900">Tất cả đều bấm: Chỉ khóa chuông
+                                    khi Host bấm Khóa</label>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -552,7 +605,26 @@
             </div>
         </div>
     </div>
-
+    
+    <div id="joinRoomModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <h2>Tham gia với tư cách Quản lý</h2>
+            <div class="modal-body">
+                <div>
+                    <label for="joinRoomCodeInput">Nhập mã phòng:</label>
+                    <input type="text" id="joinRoomCodeInput" class="modal-input">
+                </div>
+                <div>
+                    <label for="joinUsernameInput">Nhập Username:</label>
+                    <input type="text" id="joinUsernameInput" class="modal-input">
+                </div>
+            </div>
+            <div class="modal-actions-center">
+                <button id="confirmJoinBtn">Xác nhận</button>
+                <button id="closeJoinModalBtn" class="modal-close-btn">Đóng</button>
+            </div>
+        </div>
+    </div>
     <script>
         // --- KHAI BÁO SOCKET.IO ---
         // Đã đặt về localhost cho kiểm thử cục bộ
@@ -571,6 +643,9 @@
             userId = `host-${socket.id}`; // Host có userId riêng
             document.getElementById('createRoomBtn').textContent = 'Tạo phòng';
             document.getElementById('createRoomBtn').disabled = false;
+            // Kích hoạt nút Tham gia phòng
+            document.getElementById('joinRoomBtn').textContent = 'Tham gia phòng (Quản lý)';
+            document.getElementById('joinRoomBtn').disabled = false;
             console.log("Connected to server. Host ID:", userId);
         });
 
@@ -580,12 +655,53 @@
             document.getElementById('roomCodeDisplay').style.display = 'block';
             document.getElementById('createRoomBtn').textContent = `Mã phòng: ${currentRoomId}`;
 
+            // Ẩn/vô hiệu hóa nút tạo/tham gia khi đã ở trong phòng
+            document.getElementById('createRoomBtn').disabled = true;
+            document.getElementById('joinRoomBtn').style.display = 'none'; // Ẩn nút tham gia
+
             // Kích hoạt các nút và hiện khu vực điều khiển
             enableButtons();
             updateBellUI("locked");
             document.getElementById('bellControlSection').style.display = 'block'; // <- DÒNG NÀY HIỆN LẠI CÁC NÚT
 
             console.log("Tạo phòng thành công:", currentRoomId);
+        });
+        
+        // BẮT SỰ KIỆN KHI THAM GIA (QUẢN LÝ) THÀNH CÔNG
+        socket.on('joinedAsManager', (data) => {
+            currentRoomId = data.roomId;
+            document.getElementById('roomCodeDisplay').textContent = `Mã phòng: ${currentRoomId}`;
+            document.getElementById('roomCodeDisplay').style.display = 'block';
+            document.getElementById('createRoomBtn').textContent = `Đã tham gia: ${currentRoomId}`;
+
+            // Ẩn/vô hiệu hóa nút tạo/tham gia
+            document.getElementById('createRoomBtn').disabled = true;
+            document.getElementById('joinRoomBtn').style.display = 'none'; // Ẩn nút tham gia
+
+            // Kích hoạt các nút và hiện khu vực điều khiển
+            enableButtons();
+            document.getElementById('bellControlSection').style.display = 'block';
+            
+            // Cập nhật trạng thái phòng ngay lập tức
+            if (data.roomState) {
+                // Giả định server trả về 'roomState' trong data
+                socket.emit('roomStateUpdate', data.roomState); // Yêu cầu cập nhật lại (Hoặc gán trực tiếp)
+                // Hoặc tốt hơn: gán trực tiếp
+                // currentRoomData = data.roomState;
+                // socket.on('roomStateUpdate', currentRoomData); // Gọi hàm cập nhật UI
+            } else {
+                updateBellUI("locked"); // Mặc định
+            }
+            
+            closeModal('joinRoomModal');
+            console.log("Tham gia phòng (Quản lý) thành công:", currentRoomId);
+            // Yêu cầu server cập nhật lại state để lấy danh sách người tham gia MỚI NHẤT
+            // (Nếu server không tự động gửi 'roomStateUpdate' cho host khi host tham gia)
+        });
+
+        // BẮT SỰ KIỆN LỖI KHI THAM GIA
+        socket.on('joinRoomError', (data) => {
+            alert(`Lỗi khi tham gia phòng: ${data.message}`);
         });
 
         socket.on('roomClosed', (data) => {
@@ -598,7 +714,7 @@
 
             // Cập nhật danh sách người tham gia
             currentParticipants = data.participants || []; // Lưu lại danh sách đầy đủ
-            document.getElementById('showParticipantsBtn').textContent = `Danh sách tham gia (${currentParticipants.filter(p => !p.isHost).length})`;
+            document.getElementById('showParticipantsBtn').textContent = `Danh sách tham gia (${currentParticipants.filter(p => !p.isHost && !p.isManager).length})`; // Chỉ đếm player
 
             // Cập nhật giao diện phòng
             updateBellUI(data.bellStatus);
@@ -703,14 +819,51 @@
 
         function renderParticipantsList() {
             const listElement = document.getElementById('participantsList');
-            if (currentParticipants.length === 0) {
+            if (!currentParticipants || currentParticipants.length === 0) {
                 listElement.innerHTML = "<p>Chưa có ai tham gia.</p>";
                 return;
             }
-            listElement.innerHTML = currentParticipants.map(p =>
-                `<p class="font-bold text-lg p-2 ${p.isHost ? 'text-blue-600' : ''}" 
-            style="font-weight: bold; font-size: 1.125rem; padding: 0.5rem; ${p.isHost ? 'color: #2563EB;' : ''}">${p.username}</p>`
-            ).join('');
+
+            // --- LOGIC SẮP XẾP MỚI ---
+            const sortedParticipants = [...currentParticipants].sort((a, b) => {
+                const getRoleScore = (p) => {
+                    if (p.isHost) return 1; // Host trên cùng
+                    if (p.isManager) return 2; // Manager ở giữa
+                    return 3; // Player cuối cùng
+                };
+
+                const scoreA = getRoleScore(a);
+                const scoreB = getRoleScore(b);
+
+                if (scoreA !== scoreB) {
+                    return scoreA - scoreB; // Sắp xếp theo điểm vai trò
+                }
+                
+                // Nếu cùng vai trò, giữ nguyên thứ tự (hoặc sắp xếp theo tên/thời gian nếu muốn)
+                // (Giả sử server gửi theo thứ tự tham gia)
+                return 0; 
+            });
+            // --- HẾT LOGIC SẮP XẾP ---
+
+            listElement.innerHTML = sortedParticipants.map(p => {
+                let style = "font-weight: bold; font-size: 1.125rem; padding: 0.5rem;";
+                let roleClass = "";
+
+                if (p.isHost) {
+                    style += "color: #2563EB;"; // Xanh dương
+                    roleClass = "text-blue-600";
+                } else if (p.isManager) {
+                    style += "color: #DC2626;"; // Màu đỏ (Tailwind red-600)
+                    roleClass = "text-red-600";
+                } else {
+                    style += "color: #000000;"; // Màu đen (Player)
+                }
+
+                return `<p class="${roleClass}" 
+                           style="${style}">
+                           ${p.username}
+                        </p>`;
+            }).join('');
         }
 
         // --- Helper: tìm userId từ participant object (linh hoạt nhiều cấu trúc) ---
@@ -749,11 +902,11 @@
         function renderLockUsersList() {
             const listElement = document.getElementById('lockUsersList');
             const contestants = (currentParticipants && Array.isArray(currentParticipants))
-                ? currentParticipants.filter(p => !p.isHost)
+                ? currentParticipants.filter(p => !p.isHost && !p.isManager) // CHỈ HIỂN THỊ PLAYER
                 : [];
 
             if (contestants.length === 0) {
-                listElement.innerHTML = "<p>Chưa có người tham gia nào.</p>";
+                listElement.innerHTML = "<p>Chưa có người tham gia (Player) nào.</p>";
                 return;
             }
 
@@ -854,6 +1007,31 @@
             if (!userId) return;
             socket.emit('createRoom');
         }
+        
+        // HÀM MỚI: XÁC NHẬN THAM GIA PHÒNG (QUẢN LÝ)
+        function confirmJoinRoom() {
+            const roomId = document.getElementById('joinRoomCodeInput').value.trim();
+            const username = document.getElementById('joinUsernameInput').value.trim();
+
+            if (!roomId || !username) {
+                alert("Vui lòng nhập cả Mã phòng và Username.");
+                return;
+            }
+            
+            if (!userId) {
+                alert("Chưa kết nối tới server. Vui lòng thử lại.");
+                return;
+            }
+
+            console.log(`Host (ID: ${userId}) joining room ${roomId} as Manager ${username}`);
+            // Gửi sự kiện mới
+            socket.emit('joinRoomAsManager', { 
+                roomId: roomId, 
+                username: username,
+                userId: userId // Gửi ID của host để server biết ai đang tham gia
+            });
+        }
+
 
         async function updateRoom(data) {
             if (!currentRoomId) return;
@@ -904,6 +1082,16 @@
 
         // --- GẮN SỰ KIỆN ---
         document.getElementById('createRoomBtn').addEventListener('click', createRoom);
+        
+        // GẮN SỰ KIỆN CHO MODAL MỚI
+        document.getElementById('joinRoomBtn').addEventListener('click', () => {
+            openModal('joinRoomModal');
+        });
+        document.getElementById('closeJoinModalBtn').addEventListener('click', () => {
+            closeModal('joinRoomModal');
+        });
+        document.getElementById('confirmJoinBtn').addEventListener('click', confirmJoinRoom);
+
 
         document.getElementById('showParticipantsBtn').addEventListener('click', () => {
             renderParticipantsList();
@@ -933,6 +1121,9 @@
         // Đặt trạng thái ban đầu
         document.getElementById('createRoomBtn').disabled = true;
         document.getElementById('createRoomBtn').textContent = 'Đang kết nối Server...';
+        // Vô hiệu hóa nút tham gia ban đầu
+        document.getElementById('joinRoomBtn').disabled = true;
+        document.getElementById('joinRoomBtn').textContent = 'Đang kết nối...';
     </script>
 </body>
 
