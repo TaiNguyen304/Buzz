@@ -31,7 +31,8 @@ const PORT = process.env.PORT || 3000;
  * options: { buzzCount: 'single', buzzMode: 'all-buzz' },
  * participants: { 
  * 'socketIdHost': { username: 'Host (Bạn)', isHost: true, userId: 'host-socketIdHost' },
- * 'socketIdContestant1': { userId: 'user1', username: 'An', isHost: false },
+ * 'socketIdContestant1': { userId: 'user1', username: 'An', isHost: false, isManager: false },
+ * 'socketIdManager1': { userId: 'manager1', username: 'Quản Lý', isHost: false, isManager: true }, // <<< Quản lý
  * },
  * buzzes: [ 
  * { userId: 'user1', username: 'An', time: 1.234, bellSessionId: 'uuid123' },
@@ -151,6 +152,42 @@ io.on('connection', (socket) => {
 
         broadcastRoomState(roomId);
     });
+    
+    // --- MANAGER EVENTS (MỚI) ---
+    socket.on('joinRoomAsManager', ({ roomId, username, userId }) => {
+        const room = rooms[roomId];
+        if (!room) {
+            socket.emit('joinRoomError', { message: 'Phòng không tồn tại.' });
+            return;
+        }
+
+        // 1. Kiểm tra trùng username (Không cho trùng với Host, Manager, hay Contestant khác)
+        const usernameExists = Object.values(room.participants).some(p => p.username === username);
+        if (usernameExists) {
+            socket.emit('joinRoomError', { message: 'Username đã tồn tại trong phòng. Vui lòng chọn tên khác.' });
+            return;
+        }
+
+        // 2. Thêm Quản lý vào phòng
+        room.participants[socket.id] = { 
+            userId: userId, 
+            username: username, 
+            isHost: false,
+            isManager: true // <<< Dòng quan trọng: đánh dấu là Quản lý
+        };
+        userIdMap[socket.id] = userId;
+
+        socket.join(roomId);
+        console.log(`Manager ${username} joined room ${roomId}`);
+
+        // 3. Phản hồi thành công về cho Manager (Host.html)
+        // Gửi toàn bộ roomState để client Host.html biết mà cập nhật giao diện điều khiển
+        socket.emit('joinedAsManager', { roomId, username, roomState: rooms[roomId] }); 
+        
+        // 4. Broadcast trạng thái mới cho tất cả mọi người (bao gồm Host)
+        broadcastRoomState(roomId);
+    });
+
 
     // --- CONTESTANT EVENTS ---
     socket.on('joinRoom', ({ roomId, username }) => {
@@ -164,7 +201,7 @@ io.on('connection', (socket) => {
         userIdMap[socket.id] = userId;
 
         // Thêm Contestant vào phòng
-        room.participants[socket.id] = { userId: userId, username: username, isHost: false };
+        room.participants[socket.id] = { userId: userId, username: username, isHost: false, isManager: false };
         socket.join(roomId);
         console.log(`Contestant ${username} joined room ${roomId}`);
 
@@ -231,10 +268,13 @@ io.on('connection', (socket) => {
                 return;
             }
             
-            // 2. Kiểm tra nếu là Contestant
+            // 2. Kiểm tra nếu là Contestant hoặc Manager
             if (rooms[roomId].participants[socket.id]) {
                 const username = rooms[roomId].participants[socket.id].username;
-                console.log(`Contestant ${username} in room ${roomId} disconnected.`);
+                // Cập nhật logic: Nếu là Manager, vẫn thông báo là đã ngắt kết nối
+                const role = rooms[roomId].participants[socket.id].isManager ? 'Manager' : 'Contestant';
+
+                console.log(`${role} ${username} in room ${roomId} disconnected.`);
                 delete rooms[roomId].participants[socket.id];
                 delete userIdMap[socket.id];
                 
