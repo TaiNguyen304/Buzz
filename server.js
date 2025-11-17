@@ -118,7 +118,21 @@ io.on('connection', (socket) => {
 
     socket.on('hostUpdateRoom', ({ roomId, data }) => {
         const room = rooms[roomId];
-        if (!room || room.hostId !== socket.id) return;
+        if (!room) return; // 1. Kiểm tra phòng tồn tại
+
+        const isHost = (room.hostId === socket.id);
+        
+        // Lấy thông tin người gửi từ danh sách participants
+        const participant = room.participants[socket.id]; 
+        
+        // Kiểm tra xem người đó có phải là Manager hay không
+        const isManager = (participant && participant.isManager === true);
+
+        // Nếu người gửi không phải Host VÀ cũng không phải Manager -> Từ chối
+        if (!isHost && !isManager) {
+            console.warn(`[AUTH] Rejected update from ${socket.id}. Not Host or Manager.`);
+            return; 
+        }
 
         // Xử lý lệnh reset chuông
         if (data.reset) {
@@ -136,7 +150,6 @@ io.on('connection', (socket) => {
                 // Không tạo session mới khi mở lại chuông trong cùng 1 vòng
                 // session mới chỉ tạo khi Host bấm Reset (đã xử lý ở trên)
             } else if (data.bellStatus === 'locked') {
-                // Khóa chuông KHÔNG xóa lịch sử
             }
         }
 
