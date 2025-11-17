@@ -206,7 +206,8 @@
             border-radius: 0.5rem;
             box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
             font-weight: bold;
-            box-sizing: border-box; /* <<< FIX LỖI CHIỀU RỘNG */
+            box-sizing: border-box;
+            /* <<< FIX LỖI CHIỀU RỘNG */
         }
 
         input[type="text"].modal-input:focus {
@@ -645,6 +646,8 @@
         let currentRoomData = null;
         let bellTimer = null;
         let currentParticipants = [];
+        let isHost = false;     // <<< CẦN THIẾT: Khai báo lại
+        let isManager = false;  // <<< FIX: Thêm biến isManager
 
         // --- SOCKET LISTENERS ---
         socket.on('connect', () => {
@@ -659,6 +662,9 @@
 
         socket.on('roomCreated', (data) => {
             currentRoomId = data.roomId;
+            isHost = true; // <<< ĐẶT VAI TRÒ LÀ HOST
+            isManager = false;
+
             document.getElementById('roomCodeDisplay').textContent = `Mã phòng: ${currentRoomId}`;
             document.getElementById('roomCodeDisplay').style.display = 'block';
             document.getElementById('createRoomBtn').textContent = `Mã phòng: ${currentRoomId}`;
@@ -668,9 +674,9 @@
             document.getElementById('joinRoomBtn').style.display = 'none'; // Ẩn nút tham gia
 
             // Kích hoạt các nút và hiện khu vực điều khiển
-            enableButtons();
+            enableButtons(); // <<< FIX: Gọi hàm kích hoạt
             updateBellUI("locked");
-            document.getElementById('bellControlSection').style.display = 'block'; // <- DÒNG NÀY HIỆN LẠI CÁC NÚT
+            document.getElementById('bellControlSection').style.display = 'block';
 
             console.log("Tạo phòng thành công:", currentRoomId);
         });
@@ -678,6 +684,9 @@
         // BẮT SỰ KIỆN KHI THAM GIA (QUẢN LÝ) THÀNH CÔNG
         socket.on('joinedAsManager', (data) => {
             currentRoomId = data.roomId;
+            isHost = false; // <<< FIX: Chắc chắn không phải Host
+            isManager = true; // <<< FIX: ĐẶT VAI TRÒ LÀ MANAGER
+
             document.getElementById('roomCodeDisplay').textContent = `Mã phòng: ${currentRoomId}`;
             document.getElementById('roomCodeDisplay').style.display = 'block';
             document.getElementById('createRoomBtn').textContent = `Đã tham gia: ${currentRoomId}`;
@@ -687,13 +696,11 @@
             document.getElementById('joinRoomBtn').style.display = 'none'; // Ẩn nút tham gia
 
             // Kích hoạt các nút và hiện khu vực điều khiển
-            enableButtons();
+            enableButtons(); // <<< FIX QUAN TRỌNG: Gọi hàm kích hoạt các nút
             document.getElementById('bellControlSection').style.display = 'block';
 
             // Cập nhật trạng thái phòng ngay lập tức
             if (data.roomState) {
-                // --- FIX LỖI LOGIC ---
-                // GỌI HÀM CẬP NHẬT TRỰC TIẾP, KHÔNG EMIT
                 handleRoomStateUpdate(data.roomState);
             } else {
                 updateBellUI("locked"); // Mặc định
@@ -721,7 +728,9 @@
 
             // Cập nhật danh sách người tham gia
             currentParticipants = data.participants || []; // Lưu lại danh sách đầy đủ
-            document.getElementById('showParticipantsBtn').textContent = `Danh sách tham gia (${currentParticipants.filter(p => !p.isHost && !p.isManager).length})`; // Chỉ đếm player
+            // Đếm số lượng Player (không phải Host/Manager)
+            const playerCount = currentParticipants.filter(p => !p.isHost && !p.isManager).length;
+            document.getElementById('showParticipantsBtn').textContent = `Danh sách tham gia (${playerCount})`;
 
             // Cập nhật giao diện phòng
             updateBellUI(data.bellStatus);
@@ -735,14 +744,23 @@
 
         // --- UTILS ---
         function enableButtons() {
+            // <<< FIX: Logic mới kiểm tra cả Host và Manager
+            const isController = isHost || isManager; 
+
             // Kích hoạt tất cả các nút điều khiển
-            document.getElementById('showParticipantsBtn').disabled = false;
-            document.getElementById('openBellInfiniteBtn').disabled = false;
-            document.getElementById('openBellTimedBtn').disabled = false;
-            document.getElementById('lockBellBtn').disabled = false;
-            document.getElementById('resetBellBtn').disabled = false;
-            document.getElementById('showLockUsersBtn').disabled = false;
-            document.getElementById('showBellOptionsBtn').disabled = false;
+            document.getElementById('showParticipantsBtn').disabled = false; // Luôn hiển thị
+            
+            document.getElementById('openBellInfiniteBtn').disabled = !isController;
+            document.getElementById('openBellTimedBtn').disabled = !isController;
+            document.getElementById('lockBellBtn').disabled = !isController;
+            document.getElementById('resetBellBtn').disabled = !isController;
+            document.getElementById('showLockUsersBtn').disabled = !isController;
+            document.getElementById('showBellOptionsBtn').disabled = !isController;
+            
+            // Nút "Danh sách tham gia" luôn hoạt động khi đã join phòng.
+            if (!currentRoomId) {
+                document.getElementById('showParticipantsBtn').disabled = true;
+            }
         }
 
         function closeModal(modalId) {
@@ -771,6 +789,7 @@
         }
 
         function updateBellOptionsUI(options) {
+            if (!options) return;
             document.getElementById('opt-single-buzz').checked = options.buzzCount === 'single';
             document.getElementById('opt-multiple-buzz').checked = options.buzzCount === 'multiple';
 
@@ -846,7 +865,6 @@
                 }
 
                 // Nếu cùng vai trò, giữ nguyên thứ tự (hoặc sắp xếp theo tên/thời gian nếu muốn)
-                // (Giả sử server gửi theo thứ tự tham gia)
                 return 0;
             });
             // --- HẾT LOGIC SẮP XẾP ---
@@ -916,19 +934,8 @@
                 return;
             }
 
-            // Lấy danh sách lockedUsers ưu tiên từ currentRoomData, nếu không có -> đọc localStorage
-            let lockedUsers = currentRoomData?.lockedUsers;
-            if (!Array.isArray(lockedUsers)) {
-                // fallback: đọc localStorage theo roomId nếu có
-                try {
-                    const rid = currentRoomId || (document.getElementById('roomCodeDisplay').textContent || '').replace('Mã phòng: ', '').trim();
-                    const key = `lockedUsers_fallback_${rid || 'local'}`;
-                    const fromStorage = localStorage.getItem(key);
-                    lockedUsers = fromStorage ? JSON.parse(fromStorage) : [];
-                } catch (e) {
-                    lockedUsers = [];
-                }
-            }
+            // Lấy danh sách lockedUsers ưu tiên từ currentRoomData
+            let lockedUsers = currentRoomData?.lockedUsers || [];
 
             // tạo HTML
             listElement.innerHTML = contestants.map(p => {
@@ -991,6 +998,9 @@
 
         // --- Save: đọc checkbox và gửi lên server (có log debug) ---
         async function saveLockedUsers() {
+            // <<< FIX: Thêm kiểm tra quyền truy cập
+            if (!currentRoomId || (!isHost && !isManager)) return;
+
             const lockedUsers = [];
             document.querySelectorAll('#lockUsersList input[type="checkbox"]:checked').forEach(cb => {
                 const v = cb.value || '';
@@ -1003,7 +1013,7 @@
                 }
             });
 
-            console.log("Host -> saveLockedUsers, sending lockedUsers:", lockedUsers);
+            console.log("Host/Manager -> saveLockedUsers, sending lockedUsers:", lockedUsers);
             await updateRoom({ lockedUsers: lockedUsers });
             closeModal('lockUsersModal');
         }
@@ -1040,14 +1050,16 @@
 
 
         async function updateRoom(data) {
-            if (!currentRoomId) return;
+            // <<< FIX: Thêm kiểm tra quyền truy cập cho updateRoom
+            if (!currentRoomId || (!isHost && !isManager)) return;
+            
             socket.emit('hostUpdateRoom', { roomId: currentRoomId, data: data });
         }
 
         // --- QUẢN LÝ CHUÔNG ---
         async function openBell(isTimed = false) {
-            if (!currentRoomId) return;
-            // Không reset session và lịch sử
+            // <<< FIX: Thêm kiểm tra quyền truy cập
+            if (!currentRoomId || (!isHost && !isManager)) return;
 
             let status = "open_infinite";
             if (isTimed) {
@@ -1064,22 +1076,34 @@
         }
 
         async function lockBell() {
+            // <<< FIX: Thêm kiểm tra quyền truy cập
+            if (!currentRoomId || (!isHost && !isManager)) return;
+
             if (bellTimer) clearTimeout(bellTimer);
             await updateRoom({ bellStatus: "locked" }); // Chỉ cập nhật trạng thái
         }
 
         async function resetBell() {
+            // <<< FIX: Thêm kiểm tra quyền truy cập
+            if (!currentRoomId || (!isHost && !isManager)) return;
+
             document.getElementById('buzzTableBody').innerHTML = `<tr><td style="width: 500px;" colspan="2">Đang reset chuông...</td></tr>`;
             await updateRoom({ reset: true }); // Gửi lệnh reset full (xóa lịch sử và session)
             if (bellTimer) clearTimeout(bellTimer);
         }
 
         async function resetAllLocks() {
+            // <<< FIX: Thêm kiểm tra quyền truy cập
+            if (!currentRoomId || (!isHost && !isManager)) return;
+
             await updateRoom({ lockedUsers: [] });
             renderLockUsersList(); // Cập nhật lại UI ngay lập Tức
         }
 
         async function saveBellOptions() {
+            // <<< FIX: Thêm kiểm tra quyền truy cập
+            if (!currentRoomId || (!isHost && !isManager)) return;
+
             const buzzCount = document.querySelector('input[name="buzzCount"]:checked').value;
             const buzzMode = document.querySelector('input[name="buzzMode"]:checked').value;
             await updateRoom({ options: { buzzCount, buzzMode } });
