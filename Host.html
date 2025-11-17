@@ -646,8 +646,8 @@
         let currentRoomData = null;
         let bellTimer = null;
         let currentParticipants = [];
-        let isHost = false;     // <<< CẦN THIẾT: Khai báo lại
-        let isManager = false;  // <<< FIX: Thêm biến isManager
+        let isHost = false;
+        let isManager = false;
 
         // --- SOCKET LISTENERS ---
         socket.on('connect', () => {
@@ -662,7 +662,7 @@
 
         socket.on('roomCreated', (data) => {
             currentRoomId = data.roomId;
-            isHost = true; // <<< ĐẶT VAI TRÒ LÀ HOST
+            isHost = true;
             isManager = false;
 
             document.getElementById('roomCodeDisplay').textContent = `Mã phòng: ${currentRoomId}`;
@@ -671,10 +671,10 @@
 
             // Ẩn/vô hiệu hóa nút tạo/tham gia khi đã ở trong phòng
             document.getElementById('createRoomBtn').disabled = true;
-            document.getElementById('joinRoomBtn').style.display = 'none'; // Ẩn nút tham gia
+            document.getElementById('joinRoomBtn').style.display = 'none';
 
             // Kích hoạt các nút và hiện khu vực điều khiển
-            enableButtons(); // <<< FIX: Gọi hàm kích hoạt
+            enableButtons();
             updateBellUI("locked");
             document.getElementById('bellControlSection').style.display = 'block';
 
@@ -684,8 +684,8 @@
         // BẮT SỰ KIỆN KHI THAM GIA (QUẢN LÝ) THÀNH CÔNG
         socket.on('joinedAsManager', (data) => {
             currentRoomId = data.roomId;
-            isHost = false; // <<< FIX: Chắc chắn không phải Host
-            isManager = true; // <<< FIX: ĐẶT VAI TRÒ LÀ MANAGER
+            isHost = false;
+            isManager = true;
 
             document.getElementById('roomCodeDisplay').textContent = `Mã phòng: ${currentRoomId}`;
             document.getElementById('roomCodeDisplay').style.display = 'block';
@@ -693,10 +693,10 @@
 
             // Ẩn/vô hiệu hóa nút tạo/tham gia
             document.getElementById('createRoomBtn').disabled = true;
-            document.getElementById('joinRoomBtn').style.display = 'none'; // Ẩn nút tham gia
+            document.getElementById('joinRoomBtn').style.display = 'none';
 
             // Kích hoạt các nút và hiện khu vực điều khiển
-            enableButtons(); // <<< FIX QUAN TRỌNG: Gọi hàm kích hoạt các nút
+            enableButtons();
             document.getElementById('bellControlSection').style.display = 'block';
 
             // Cập nhật trạng thái phòng ngay lập tức
@@ -726,9 +726,13 @@
         function handleRoomStateUpdate(data) {
             currentRoomData = data;
 
-            // Cập nhật danh sách người tham gia
-            currentParticipants = data.participants || []; // Lưu lại danh sách đầy đủ
+            // <<< FIX LỖI: Đảm bảo data.participants là Array trước khi gán
+            // Server đã gửi về Array (participantsArray), nhưng ta cần đảm bảo kiểu dữ liệu hợp lệ
+            // Nếu data.participants không phải Array, gán mảng rỗng []
+            currentParticipants = Array.isArray(data.participants) ? data.participants : []; 
+
             // Đếm số lượng Player (không phải Host/Manager)
+            // Lỗi TypeError: currentParticipants.filter is not a function đã được sửa
             const playerCount = currentParticipants.filter(p => !p.isHost && !p.isManager).length;
             document.getElementById('showParticipantsBtn').textContent = `Danh sách tham gia (${playerCount})`;
 
@@ -744,7 +748,7 @@
 
         // --- UTILS ---
         function enableButtons() {
-            // <<< FIX: Logic mới kiểm tra cả Host và Manager
+            // Logic mới kiểm tra cả Host và Manager
             const isController = isHost || isManager; 
 
             // Kích hoạt tất cả các nút điều khiển
@@ -842,54 +846,6 @@
             }).join('');
         }
 
-        function renderParticipantsList() {
-            const listElement = document.getElementById('participantsList');
-            if (!currentParticipants || currentParticipants.length === 0) {
-                listElement.innerHTML = "<p>Chưa có ai tham gia.</p>";
-                return;
-            }
-
-            // --- LOGIC SẮP XẾP MỚI ---
-            const sortedParticipants = [...currentParticipants].sort((a, b) => {
-                const getRoleScore = (p) => {
-                    if (p.isHost) return 1; // Host trên cùng
-                    if (p.isManager) return 2; // Manager ở giữa
-                    return 3; // Player cuối cùng
-                };
-
-                const scoreA = getRoleScore(a);
-                const scoreB = getRoleScore(b);
-
-                if (scoreA !== scoreB) {
-                    return scoreA - scoreB; // Sắp xếp theo điểm vai trò
-                }
-
-                // Nếu cùng vai trò, giữ nguyên thứ tự (hoặc sắp xếp theo tên/thời gian nếu muốn)
-                return 0;
-            });
-            // --- HẾT LOGIC SẮP XẾP ---
-
-            listElement.innerHTML = sortedParticipants.map(p => {
-                let style = "font-weight: bold; font-size: 1.125rem; padding: 0.5rem;";
-                let roleClass = "";
-
-                if (p.isHost) {
-                    style += "color: #2563EB;"; // Xanh dương
-                    roleClass = "text-blue-600";
-                } else if (p.isManager) {
-                    style += "color: #DC2626;"; // Màu đỏ (Tailwind red-600)
-                    roleClass = "text-red-600";
-                } else {
-                    style += "color: #000000;"; // Màu đen (Player)
-                }
-
-                return `<p class="${roleClass}" 
-                           style="${style}">
-                           ${p.username}
-                        </p>`;
-            }).join('');
-        }
-
         // --- Helper: tìm userId từ participant object (linh hoạt nhiều cấu trúc) ---
         function resolveUserIdFromParticipant(p) {
             if (!p) return '';
@@ -922,12 +878,64 @@
             return '';
         }
 
+        // --- Render danh sách người tham gia (đã sửa lỗi potential null/undefined access) ---
+        function renderParticipantsList() {
+            // FIX: Đảm bảo currentParticipants là một mảng
+            const participants = Array.isArray(currentParticipants) ? currentParticipants : [];
+
+            if (participants.length === 0) {
+                document.getElementById('participantsList').innerHTML = "<p>Chưa có ai tham gia.</p>";
+                return;
+            }
+
+            // --- LOGIC SẮP XẾP MỚI ---
+            const sortedParticipants = [...participants].sort((a, b) => {
+                const getRoleScore = (p) => {
+                    if (p.isHost) return 1; // Host trên cùng
+                    if (p.isManager) return 2; // Manager ở giữa
+                    return 3; // Player cuối cùng
+                };
+
+                const scoreA = getRoleScore(a);
+                const scoreB = getRoleScore(b);
+
+                if (scoreA !== scoreB) {
+                    return scoreA - scoreB; // Sắp xếp theo điểm vai trò
+                }
+
+                // Nếu cùng vai trò, giữ nguyên thứ tự (hoặc sắp xếp theo tên/thời gian nếu muốn)
+                return 0;
+            });
+            // --- HẾT LOGIC SẮP XẾP ---
+
+            document.getElementById('participantsList').innerHTML = sortedParticipants.map(p => {
+                let style = "font-weight: bold; font-size: 1.125rem; padding: 0.5rem;";
+                let roleClass = "";
+
+                if (p.isHost) {
+                    style += "color: #2563EB;"; // Xanh dương
+                    roleClass = "text-blue-600";
+                } else if (p.isManager) {
+                    style += "color: #DC2626;"; // Màu đỏ (Tailwind red-600)
+                    roleClass = "text-red-600";
+                } else {
+                    style += "color: #000000;"; // Màu đen (Player)
+                }
+
+                return `<p class="${roleClass}" 
+                           style="${style}">
+                           ${p.username}
+                        </p>`;
+            }).join('');
+        }
+
         // --- Render danh sách checkbox chọn người bị khóa (linh hoạt) ---
         function renderLockUsersList() {
             const listElement = document.getElementById('lockUsersList');
-            const contestants = (currentParticipants && Array.isArray(currentParticipants))
-                ? currentParticipants.filter(p => !p.isHost && !p.isManager) // CHỈ HIỂN THỊ PLAYER
-                : [];
+            // FIX: Đảm bảo currentParticipants là một mảng
+            const participants = Array.isArray(currentParticipants) ? currentParticipants : [];
+
+            const contestants = participants.filter(p => !p.isHost && !p.isManager); // CHỈ HIỂN THỊ PLAYER
 
             if (contestants.length === 0) {
                 listElement.innerHTML = "<p>Chưa có người tham gia (Player) nào.</p>";
@@ -998,7 +1006,7 @@
 
         // --- Save: đọc checkbox và gửi lên server (có log debug) ---
         async function saveLockedUsers() {
-            // <<< FIX: Thêm kiểm tra quyền truy cập
+            // Thêm kiểm tra quyền truy cập
             if (!currentRoomId || (!isHost && !isManager)) return;
 
             const lockedUsers = [];
@@ -1050,7 +1058,7 @@
 
 
         async function updateRoom(data) {
-            // <<< FIX: Thêm kiểm tra quyền truy cập cho updateRoom
+            // Thêm kiểm tra quyền truy cập cho updateRoom
             if (!currentRoomId || (!isHost && !isManager)) return;
             
             socket.emit('hostUpdateRoom', { roomId: currentRoomId, data: data });
@@ -1058,7 +1066,7 @@
 
         // --- QUẢN LÝ CHUÔNG ---
         async function openBell(isTimed = false) {
-            // <<< FIX: Thêm kiểm tra quyền truy cập
+            // Thêm kiểm tra quyền truy cập
             if (!currentRoomId || (!isHost && !isManager)) return;
 
             let status = "open_infinite";
@@ -1076,7 +1084,7 @@
         }
 
         async function lockBell() {
-            // <<< FIX: Thêm kiểm tra quyền truy cập
+            // Thêm kiểm tra quyền truy cập
             if (!currentRoomId || (!isHost && !isManager)) return;
 
             if (bellTimer) clearTimeout(bellTimer);
@@ -1084,7 +1092,7 @@
         }
 
         async function resetBell() {
-            // <<< FIX: Thêm kiểm tra quyền truy cập
+            // Thêm kiểm tra quyền truy cập
             if (!currentRoomId || (!isHost && !isManager)) return;
 
             document.getElementById('buzzTableBody').innerHTML = `<tr><td style="width: 500px;" colspan="2">Đang reset chuông...</td></tr>`;
@@ -1093,7 +1101,7 @@
         }
 
         async function resetAllLocks() {
-            // <<< FIX: Thêm kiểm tra quyền truy cập
+            // Thêm kiểm tra quyền truy cập
             if (!currentRoomId || (!isHost && !isManager)) return;
 
             await updateRoom({ lockedUsers: [] });
@@ -1101,7 +1109,7 @@
         }
 
         async function saveBellOptions() {
-            // <<< FIX: Thêm kiểm tra quyền truy cập
+            // Thêm kiểm tra quyền truy cập
             if (!currentRoomId || (!isHost && !isManager)) return;
 
             const buzzCount = document.querySelector('input[name="buzzCount"]:checked').value;
