@@ -114,10 +114,11 @@
             color: #FFFFFF;
             /* text-white */
         }
-        
+
         /* NÚT MỚI: THAM GIA PHÒNG */
         #joinRoomBtn {
-            background-color: purple;
+            background-color: #22C55E;
+            /* green-500 */
             color: #FFFFFF;
         }
 
@@ -196,21 +197,26 @@
             /* shadow-sm */
             font-weight: bold;
         }
-        
+
         /* CSS cho Input Text trong Modal */
         input[type="text"].modal-input {
             width: 100%;
             padding: 0.5rem;
-            border: 1px solid #D1D5DB; /* border-gray-300 */
+            border: 1px solid #D1D5DB;
+            /* border-gray-300 */
             border-radius: 0.5rem;
             box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
             font-weight: bold;
+            box-sizing: border-box; /* <<< FIX LỖI CHIỀU RỘNG */
         }
+
         input[type="text"].modal-input:focus {
             outline: 2px solid transparent;
             outline-offset: 2px;
-            border-color: #ff00cc; 
-            box-shadow: 0 0 0 3px #ff00cc; 
+            border-color: #3B82F6;
+            /* blue-500 */
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+            /* ring-blue-500 */
         }
 
         input[type="number"]:focus {
@@ -314,22 +320,22 @@
             color: #000000;
             /* text-black */
         }
-        
+
         /* CSS cho tính năng Bổ sung (Tô màu lượt bấm muộn nhất) */
         .latest-buzz {
             background-color: blue !important;
             color: white !important;
         }
+
         .latest-buzz td {
             background-color: blue !important;
             color: white !important;
             font-weight: bold;
         }
-        
+
         /* CSS MỚI: Màu chữ cho Quản lý trong danh sách */
         .text-red-600 {
-            color: red;
-            font-weight: bold;
+            color: #DC2626;
         }
 
         /* Modal Styles */
@@ -408,7 +414,7 @@
             color: #FFFFFF;
             /* text-white */
         }
-        
+
         /* CSS MỚI: Nút Xác nhận (Join Room) */
         #confirmJoinBtn {
             background-color: green;
@@ -443,7 +449,7 @@
             text-align: left;
             /* text-left */
             display: inline;
-            color: black;
+            color: #111827;
             /* text-gray-900 */
             font-weight: normal;
             /* font-normal */
@@ -470,20 +476,25 @@
             margin-bottom: 0;
             text-align: left;
         }
-        
+
         /* CSS MỚI: Label trong Modal Tham gia phòng */
         #joinRoomModal label {
             text-align: left;
-            color: #111827; /* gray-900 */
+            color: #111827;
+            /* gray-900 */
             margin-bottom: 0.5rem;
-            font-size: 1rem; /* text-base */
+            font-size: 1rem;
+            /* text-base */
         }
+
         /* CSS MỚI: Khoảng cách trong Modal Tham gia phòng */
         #joinRoomModal .modal-body {
-             display: flex;
-             flex-direction: column;
-             gap: 1rem; /* space-y-4 */
-             max-height: none; /* Bỏ giới hạn chiều cao cho modal đơn giản này */
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            /* space-y-4 */
+            max-height: none;
+            /* Bỏ giới hạn chiều cao cho modal đơn giản này */
         }
     </style>
 </head>
@@ -605,7 +616,7 @@
             </div>
         </div>
     </div>
-    
+
     <div id="joinRoomModal" class="modal-overlay" style="display: none;">
         <div class="modal-content">
             <h2>Tham gia với tư cách Quản lý</h2>
@@ -666,7 +677,7 @@
 
             console.log("Tạo phòng thành công:", currentRoomId);
         });
-        
+
         // BẮT SỰ KIỆN KHI THAM GIA (QUẢN LÝ) THÀNH CÔNG
         socket.on('joinedAsManager', (data) => {
             currentRoomId = data.roomId;
@@ -681,22 +692,18 @@
             // Kích hoạt các nút và hiện khu vực điều khiển
             enableButtons();
             document.getElementById('bellControlSection').style.display = 'block';
-            
+
             // Cập nhật trạng thái phòng ngay lập tức
             if (data.roomState) {
-                // Giả định server trả về 'roomState' trong data
-                socket.emit('roomStateUpdate', data.roomState); // Yêu cầu cập nhật lại (Hoặc gán trực tiếp)
-                // Hoặc tốt hơn: gán trực tiếp
-                // currentRoomData = data.roomState;
-                // socket.on('roomStateUpdate', currentRoomData); // Gọi hàm cập nhật UI
+                // --- FIX LỖI LOGIC ---
+                // GỌI HÀM CẬP NHẬT TRỰC TIẾP, KHÔNG EMIT
+                handleRoomStateUpdate(data.roomState);
             } else {
                 updateBellUI("locked"); // Mặc định
             }
-            
+
             closeModal('joinRoomModal');
             console.log("Tham gia phòng (Quản lý) thành công:", currentRoomId);
-            // Yêu cầu server cập nhật lại state để lấy danh sách người tham gia MỚI NHẤT
-            // (Nếu server không tự động gửi 'roomStateUpdate' cho host khi host tham gia)
         });
 
         // BẮT SỰ KIỆN LỖI KHI THAM GIA
@@ -709,7 +716,10 @@
             window.location.reload();
         });
 
-        socket.on('roomStateUpdate', (data) => {
+        // --- REFACTOR: TÁCH HÀM XỬ LÝ STATE RIÊNG ---
+        socket.on('roomStateUpdate', handleRoomStateUpdate);
+
+        function handleRoomStateUpdate(data) {
             currentRoomData = data;
 
             // Cập nhật danh sách người tham gia
@@ -722,10 +732,9 @@
             renderBuzzTable(data.buzzes || [], data.bellOpenTimestamp);
 
             // Nếu server gửi lockedUsers, đồng bộ checkbox ngay lập tức.
-            // Nếu không có (ví dụ chạy local), sẽ thử đọc từ localStorage.
             const lockedFromServer = Array.isArray(data.lockedUsers) ? data.lockedUsers : null;
             updateLockedUsersUI(lockedFromServer);
-        });
+        }
 
         // --- UTILS ---
         function enableButtons() {
@@ -786,9 +795,9 @@
                 // Nhóm theo username và tìm lượt bấm lớn nhất (muộn nhất)
                 buzzes.forEach(buzz => {
                     // Lấy thời gian hiện tại của buzz, nếu là null/undefined thì coi là 0 để so sánh
-                    const buzzTime = buzz.time || 0; 
+                    const buzzTime = buzz.time || 0;
                     const currentLatest = latestBuzzPerUser.get(buzz.username);
-                    
+
                     if (currentLatest === undefined || buzzTime > (currentLatest.time || 0)) {
                         latestBuzzPerUser.set(buzz.username, buzz);
                     }
@@ -838,10 +847,10 @@
                 if (scoreA !== scoreB) {
                     return scoreA - scoreB; // Sắp xếp theo điểm vai trò
                 }
-                
+
                 // Nếu cùng vai trò, giữ nguyên thứ tự (hoặc sắp xếp theo tên/thời gian nếu muốn)
                 // (Giả sử server gửi theo thứ tự tham gia)
-                return 0; 
+                return 0;
             });
             // --- HẾT LOGIC SẮP XẾP ---
 
@@ -1007,7 +1016,7 @@
             if (!userId) return;
             socket.emit('createRoom');
         }
-        
+
         // HÀM MỚI: XÁC NHẬN THAM GIA PHÒNG (QUẢN LÝ)
         function confirmJoinRoom() {
             const roomId = document.getElementById('joinRoomCodeInput').value.trim();
@@ -1017,7 +1026,7 @@
                 alert("Vui lòng nhập cả Mã phòng và Username.");
                 return;
             }
-            
+
             if (!userId) {
                 alert("Chưa kết nối tới server. Vui lòng thử lại.");
                 return;
@@ -1025,8 +1034,8 @@
 
             console.log(`Host (ID: ${userId}) joining room ${roomId} as Manager ${username}`);
             // Gửi sự kiện mới
-            socket.emit('joinRoomAsManager', { 
-                roomId: roomId, 
+            socket.emit('joinRoomAsManager', {
+                roomId: roomId,
                 username: username,
                 userId: userId // Gửi ID của host để server biết ai đang tham gia
             });
@@ -1054,7 +1063,7 @@
                 }, duration * 1000);
             }
             // Gửi trạng thái mới, không reset. Server phải thiết lập bellOpenTimestamp
-            await updateRoom({ bellStatus: status, reset: false }); 
+            await updateRoom({ bellStatus: status, reset: false });
         }
 
         async function lockBell() {
@@ -1082,7 +1091,7 @@
 
         // --- GẮN SỰ KIỆN ---
         document.getElementById('createRoomBtn').addEventListener('click', createRoom);
-        
+
         // GẮN SỰ KIỆN CHO MODAL MỚI
         document.getElementById('joinRoomBtn').addEventListener('click', () => {
             openModal('joinRoomModal');
