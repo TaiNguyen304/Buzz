@@ -1091,13 +1091,15 @@
             await updateRoom({ bellStatus: "locked" }); // Chỉ cập nhật trạng thái
         }
 
+        // >>> ĐÃ SỬA: CHỈ GỬI LỆNH RESET BUZZ (resetBuzz: true), KHÔNG ĐỤNG TỚI TRẠNG THÁI CHUÔNG
         async function resetBell() {
             // Thêm kiểm tra quyền truy cập
             if (!currentRoomId || (!isHost && !isManager)) return;
 
             document.getElementById('buzzTableBody').innerHTML = `<tr><td style="width: 500px;" colspan="2">Đang reset chuông...</td></tr>`;
-            await updateRoom({ reset: true }); // Gửi lệnh reset full (xóa lịch sử và session)
-            if (bellTimer) clearTimeout(bellTimer);
+            // Gửi lệnh reset buzz (chỉ xóa lịch sử bấm chuông)
+            await updateRoom({ resetBuzz: true }); 
+            // KHÔNG clear timer, nếu đang đếm ngược thì vẫn đếm tiếp
         }
 
         async function resetAllLocks() {

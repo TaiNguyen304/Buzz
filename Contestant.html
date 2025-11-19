@@ -352,7 +352,6 @@
 
     <script>
         // --- KHAI BÁO SOCKET.IO ---
-        // ĐÃ SỬA: Trả về localhost để chạy thử nghiệm cục bộ
         const SERVER_URL = 'https://buzz1.onrender.com';
         const socket = io(SERVER_URL);
 
@@ -390,9 +389,6 @@
             currentRoomId = data.roomId;
             username = data.username;
 
-            // --- SỬA LỖI TẠI ĐÂY ---
-            // Đảm bảo lấy đúng userId, dù server gửi về 'userId', 'id', hay 'socketId'
-            // và luôn chuyển nó thành STRING, giống hệt cách Host làm.
             let resolvedId = null;
             if (data.userId) resolvedId = data.userId;
             else if (data.id) resolvedId = data.id;
@@ -441,10 +437,6 @@
                 iHaveBuzzed = true;
                 myBuzzTime = myBuzzInThisSession.time;
             } else {
-                // Nếu không tìm thấy lượt bấm trong phiên này, ta reset trạng thái
-                // (Chỉ reset nếu chế độ là 'single' hoặc nếu không tìm thấy)
-                // Logic này được đơn giản hóa:
-                // Nếu không tìm thấy, nghĩa là chưa bấm trong phiên này.
                 iHaveBuzzed = false;
                 myBuzzTime = null;
             }
@@ -516,9 +508,16 @@
             }
 
             // 1. Bị host khóa? 
-            // Thêm một bước kiểm tra an toàn cho currentRoomData.lockedUsers
             const lockedUsersList = currentRoomData.lockedUsers || [];
-            const isLockedByHost = lockedUsersList.includes(userId) || lockedUsersList.includes(username);
+            
+            // --- SỬA LỖI TẠI ĐÂY: Chuẩn hóa dữ liệu sang chuỗi để so sánh nhất quán ---
+            const normalizedLockedList = lockedUsersList.map(item => String(item).trim());
+            const normalizedUserId = String(userId).trim();
+            const normalizedUsername = String(username).trim();
+
+            const isLockedByHost = normalizedLockedList.includes(normalizedUserId) || normalizedLockedList.includes(normalizedUsername);
+            // --- KẾT THÚC SỬA LỖI ---
+
 
             if (isLockedByHost) {
                 setBuzzerState("locked", "Bạn đã bị Host khóa chuông");
