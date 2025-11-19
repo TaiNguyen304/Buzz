@@ -725,14 +725,8 @@
 
         function handleRoomStateUpdate(data) {
             currentRoomData = data;
-
-            // <<< FIX LỖI: Đảm bảo data.participants là Array trước khi gán
-            // Server đã gửi về Array (participantsArray), nhưng ta cần đảm bảo kiểu dữ liệu hợp lệ
-            // Nếu data.participants không phải Array, gán mảng rỗng []
             currentParticipants = Array.isArray(data.participants) ? data.participants : []; 
 
-            // Đếm số lượng Player (không phải Host/Manager)
-            // Lỗi TypeError: currentParticipants.filter is not a function đã được sửa
             const playerCount = currentParticipants.filter(p => !p.isHost && !p.isManager).length;
             document.getElementById('showParticipantsBtn').textContent = `Danh sách tham gia (${playerCount})`;
 
@@ -1091,12 +1085,14 @@
             await updateRoom({ bellStatus: "locked" }); // Chỉ cập nhật trạng thái
         }
 
-        // >>> ĐÃ SỬA: CHỈ GỬI LỆNH RESET BUZZ (resetBuzz: true), KHÔNG ĐỤNG TỚI TRẠNG THÁI CHUÔNG
+        // >>> ĐÃ SỬA: LÀM TRỐNG BẢNG KẾT QUẢ NGAY LẬP TỨC KHI BẤM RESET <<<
         async function resetBell() {
             // Thêm kiểm tra quyền truy cập
             if (!currentRoomId || (!isHost && !isManager)) return;
 
-            document.getElementById('buzzTableBody').innerHTML = `<tr><td style="width: 500px;" colspan="2">Đang reset chuông...</td></tr>`;
+            // SỬA: Set innerHTML về trạng thái trống ngay lập tức
+            document.getElementById('buzzTableBody').innerHTML = `<tr><td colspan="2">Chưa có ai bấm chuông</td></tr>`;
+            
             // Gửi lệnh reset buzz (chỉ xóa lịch sử bấm chuông)
             await updateRoom({ resetBuzz: true }); 
             // KHÔNG clear timer, nếu đang đếm ngược thì vẫn đếm tiếp
