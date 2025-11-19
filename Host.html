@@ -1092,7 +1092,27 @@
             if (!currentRoomId || (!isHost && !isManager)) return;
 
             document.getElementById('buzzTableBody').innerHTML = `<tr><td style="width: 500px;" colspan="2">Đang reset chuông...</td></tr>`;
-            await updateRoom({ reset: true }); // Gửi lệnh reset full (xóa lịch sử và session)
+
+            // --- LOGIC MỚI: KIỂM TRA TRẠNG THÁI TRƯỚC KHI RESET ---
+            // Nếu chuông đang mở vĩnh viễn, ta muốn giữ nguyên trạng thái đó sau khi reset
+            let nextStatus = null;
+            if (currentRoomData && currentRoomData.bellStatus === 'open_infinite') {
+                nextStatus = 'open_infinite';
+            }
+
+            // Tạo dữ liệu gửi lên server
+            const payload = {
+                reset: true // Lệnh xóa danh sách bấm và tạo phiên mới
+            };
+
+            // Nếu đang mở vĩnh viễn, gửi kèm trạng thái này để Server không tự động khóa
+            if (nextStatus === 'open_infinite') {
+                payload.bellStatus = 'open_infinite';
+            }
+
+            await updateRoom(payload);
+            
+            // Nếu dùng chế độ hẹn giờ thì xóa timer đi (vì reset là làm mới)
             if (bellTimer) clearTimeout(bellTimer);
         }
 
