@@ -585,6 +585,13 @@
         document.getElementById('joinRoomBtn').addEventListener('click', joinRoom);
         buzzerBtn.addEventListener('click', handleBuzzerClick);
 
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Control' && !event.repeat) {
+                if (buzzerSection.style.display === 'none') return;
+                handleBuzzerClick();
+            }
+        });
+
         // Cập nhật UI lần đầu
         setBuzzerState("locked", "Vui lòng chờ Host...");
 
