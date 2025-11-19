@@ -712,11 +712,9 @@
 
         // BẮT SỰ KIỆN LỖI KHI THAM GIA
         socket.on('joinRoomError', (data) => {
-            alert(`Lỗi khi tham gia phòng: ${data.message}`);
         });
 
         socket.on('roomClosed', (data) => {
-            alert(data.message);
             window.location.reload();
         });
 
@@ -725,8 +723,11 @@
 
         function handleRoomStateUpdate(data) {
             currentRoomData = data;
+
+            // <<< FIX LỖI: Đảm bảo data.participants là Array trước khi gán
             currentParticipants = Array.isArray(data.participants) ? data.participants : []; 
 
+            // Đếm số lượng Player (không phải Host/Manager)
             const playerCount = currentParticipants.filter(p => !p.isHost && !p.isManager).length;
             document.getElementById('showParticipantsBtn').textContent = `Danh sách tham gia (${playerCount})`;
 
@@ -1032,12 +1033,10 @@
             const username = document.getElementById('joinUsernameInput').value.trim();
 
             if (!roomId || !username) {
-                alert("Vui lòng nhập cả Mã phòng và Username.");
                 return;
             }
 
             if (!userId) {
-                alert("Chưa kết nối tới server. Vui lòng thử lại.");
                 return;
             }
 
@@ -1085,16 +1084,15 @@
             await updateRoom({ bellStatus: "locked" }); // Chỉ cập nhật trạng thái
         }
 
-        // >>> ĐÃ SỬA: LÀM TRỐNG BẢNG KẾT QUẢ NGAY LẬP TỨC KHI BẤM RESET <<<
+        // >>> ĐÃ SỬA LẠI HÀM RESET BELL: GỬI KÈM buzzes: [] ĐỂ ÉP SERVER XÓA DỮ LIỆU CŨ
         async function resetBell() {
             // Thêm kiểm tra quyền truy cập
             if (!currentRoomId || (!isHost && !isManager)) return;
 
-            // SỬA: Set innerHTML về trạng thái trống ngay lập tức
+            // Set innerHTML về trạng thái trống ngay lập tức
             document.getElementById('buzzTableBody').innerHTML = `<tr><td colspan="2">Chưa có ai bấm chuông</td></tr>`;
+            await updateRoom({ buzzes: [], resetBuzz: true }); 
             
-            // Gửi lệnh reset buzz (chỉ xóa lịch sử bấm chuông)
-            await updateRoom({ resetBuzz: true }); 
             // KHÔNG clear timer, nếu đang đếm ngược thì vẫn đếm tiếp
         }
 
