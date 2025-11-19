@@ -712,11 +712,9 @@
 
         // BẮT SỰ KIỆN LỖI KHI THAM GIA
         socket.on('joinRoomError', (data) => {
-            alert(`Lỗi khi tham gia phòng: ${data.message}`);
         });
 
         socket.on('roomClosed', (data) => {
-            alert(data.message);
             window.location.reload();
         });
 
@@ -1038,12 +1036,10 @@
             const username = document.getElementById('joinUsernameInput').value.trim();
 
             if (!roomId || !username) {
-                alert("Vui lòng nhập cả Mã phòng và Username.");
                 return;
             }
 
             if (!userId) {
-                alert("Chưa kết nối tới server. Vui lòng thử lại.");
                 return;
             }
 
