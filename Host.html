@@ -94,7 +94,7 @@
             color: white;
             border-radius: 0.5rem;
             font-size: 1.5rem;
-            font-family: Arial, Helvetica, sans-serif;
+            font-family: monospace;
             text-align: center;
             flex: 1 1 0%;
             font-weight: bold;
@@ -350,7 +350,6 @@
             max-height: none;
         }
 
-        /* --- CSS TIMER --- */
         #hostTimerDisplay {
             display: block;
             width: 80%;
@@ -358,7 +357,7 @@
             background-color: #FFFF00;
             color: #000000;
             font-weight: bold;
-            font-size: 1.5rem;
+            font-size: 2rem;
             padding: 0.75rem;
             border-radius: 0.5rem;
             text-align: center;
@@ -380,10 +379,8 @@
         <div id="bellControlSection" style="display: none;">
             <div id="bellStatusDisplay">CHUÔNG ĐANG KHÓA</div>
             <div id="hostTimerDisplay">0.000s</div>
-
             <label for="bellTimeInput">Thời gian mở chuông (giây):</label>
             <input type="number" id="bellTimeInput" value="10">
-
             <div class="grid-container">
                 <button id="openBellInfiniteBtn" disabled>Mở chuông vĩnh viễn</button>
                 <button id="openBellTimedBtn" disabled>Mở chuông (Giới hạn)</button>
@@ -481,15 +478,8 @@
     <script>
         const SERVER_URL = 'https://buzz1.onrender.com';
         const socket = io(SERVER_URL);
-
-        let userId = null;
-        let currentRoomId = null;
-        let currentRoomData = null;
-        let bellTimer = null;
-        let currentParticipants = [];
-        let isHost = false;
-        let isManager = false;
-        let countdownInterval = null;
+        let userId = null, currentRoomId = null, currentRoomData = null, bellTimer = null, currentParticipants = [];
+        let isHost = false, isManager = false, countdownInterval = null;
         const hostTimerDisplay = document.getElementById('hostTimerDisplay');
 
         socket.on('connect', () => {
@@ -499,16 +489,13 @@
             document.getElementById('createRoomBtn').textContent = 'Tạo phòng';
             document.getElementById('joinRoomBtn').textContent = 'Tham gia phòng (Quản lý)';
         });
-
         socket.on('roomCreated', (data) => { setupRoom(data, true, false); });
         socket.on('joinedAsManager', (data) => { setupRoom(data, false, true); closeModal('joinRoomModal'); });
         socket.on('roomClosed', () => window.location.reload());
         socket.on('roomStateUpdate', handleRoomStateUpdate);
 
         function setupRoom(data, host, manager) {
-            currentRoomId = data.roomId;
-            isHost = host;
-            isManager = manager;
+            currentRoomId = data.roomId; isHost = host; isManager = manager;
             document.getElementById('roomCodeDisplay').textContent = `Mã phòng: ${currentRoomId}`;
             document.getElementById('roomCodeDisplay').style.display = 'block';
             document.getElementById('createRoomBtn').textContent = isHost ? `Mã phòng: ${currentRoomId}` : `Đã tham gia: ${currentRoomId}`;
@@ -516,8 +503,7 @@
             document.getElementById('joinRoomBtn').style.display = 'none';
             enableButtons();
             document.getElementById('bellControlSection').style.display = 'block';
-            if (data.roomState) handleRoomStateUpdate(data.roomState);
-            else updateBellUI("locked");
+            if (data.roomState) handleRoomStateUpdate(data.roomState); else updateBellUI("locked");
         }
 
         function handleRoomStateUpdate(data) {
@@ -529,160 +515,107 @@
             renderBuzzTable(data.buzzes || []);
             updateLockedUsersUI(data.lockedUsers || []);
 
-            // --- XỬ LÝ ĐẾM NGƯỢC ---
+            // XỬ LÝ ĐẾM NGƯỢC VÀ KHÓA KHI HẾT GIỜ
             if (data.bellStatus === 'open_timed' && data.bellOpenTimestamp && data.bellDuration) {
                 startCountdown(data.bellDuration, data.bellOpenTimestamp);
-            } else if (data.bellStatus !== 'open_timed') {
+            } else {
                 stopCountdown();
             }
         }
 
         function startCountdown(duration, startTime) {
             if (countdownInterval) clearInterval(countdownInterval);
-            // Chuyển startTime về số để tính toán chính xác
             const start = Number(startTime);
-
             const updateTimer = () => {
                 const now = Date.now();
                 const elapsed = (now - start) / 1000;
                 const remaining = duration - elapsed;
-
                 if (remaining <= 0) {
                     hostTimerDisplay.textContent = "0.000s";
                     clearInterval(countdownInterval);
+                    // QUAN TRỌNG: Khi Host thấy hết giờ -> Gửi lệnh khóa ngay
+                    if (currentRoomData.bellStatus === 'open_timed') {
+                        lockBell();
+                    }
                 } else {
                     hostTimerDisplay.textContent = remaining.toFixed(3) + "s";
                 }
             };
             updateTimer();
-            countdownInterval = setInterval(updateTimer, 33); // Cập nhật ~30 lần/giây
+            countdownInterval = setInterval(updateTimer, 33);
         }
 
-        function stopCountdown() {
-            if (countdownInterval) clearInterval(countdownInterval);
-            hostTimerDisplay.textContent = "0.000s";
-        }
+        function stopCountdown() { if (countdownInterval) clearInterval(countdownInterval); hostTimerDisplay.textContent = "0.000s"; }
 
-        // --- HÀM QUAN TRỌNG: MỞ CHUÔNG ---
         async function openBell(isTimed = false) {
             if (!currentRoomId || (!isHost && !isManager)) return;
-
-            const durationVal = document.getElementById('bellTimeInput').value;
-            const duration = parseInt(durationVal) || 10; // Lấy giá trị từ textbox
-
-            let status = "open_infinite";
-            let payload = { reset: false };
+            const duration = parseInt(document.getElementById('bellTimeInput').value) || 10;
+            let status = isTimed ? "open_timed" : "open_infinite";
+            let payload = { bellStatus: status, reset: false };
 
             if (isTimed) {
-                status = "open_timed";
-                const startTime = Date.now();
-
-                // Hiển thị ngay lập tức cho Host (Optimistic UI)
-                startCountdown(duration, startTime);
-
-                // Gửi dữ liệu lên server
                 payload.bellDuration = duration;
-                payload.bellOpenTimestamp = startTime;
-
-                if (bellTimer) clearTimeout(bellTimer);
-                bellTimer = setTimeout(() => { lockBell(); }, duration * 1000);
-            } else {
-                stopCountdown();
+                payload.bellOpenTimestamp = Date.now();
+                // Host tự chạy trước để cảm giác nhanh
+                startCountdown(duration, payload.bellOpenTimestamp);
             }
-
-            payload.bellStatus = status;
             await updateRoom(payload);
         }
 
-        async function updateRoom(data) {
-            socket.emit('hostUpdateRoom', { roomId: currentRoomId, data: data });
+        async function lockBell() {
+            if (!currentRoomId || (!isHost && !isManager)) return;
+            if (bellTimer) clearTimeout(bellTimer);
+            await updateRoom({ bellStatus: "locked" });
         }
 
-        // --- CÁC HÀM KHÁC (GIỮ NGUYÊN) ---
+        async function updateRoom(data) { socket.emit('hostUpdateRoom', { roomId: currentRoomId, data: data }); }
+
         function enableButtons() {
             const isController = isHost || isManager;
-            const buttons = ['openBellInfiniteBtn', 'openBellTimedBtn', 'lockBellBtn', 'resetBellBtn', 'showLockUsersBtn', 'showBellOptionsBtn'];
-            buttons.forEach(id => document.getElementById(id).disabled = !isController);
+            const ids = ['openBellInfiniteBtn', 'openBellTimedBtn', 'lockBellBtn', 'resetBellBtn', 'showLockUsersBtn', 'showBellOptionsBtn'];
+            ids.forEach(id => document.getElementById(id).disabled = !isController);
             document.getElementById('showParticipantsBtn').disabled = false;
         }
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
         function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-
         function updateBellUI(status) {
             const d = document.getElementById('bellStatusDisplay');
             d.style.backgroundColor = status === 'open_infinite' ? 'blue' : (status === 'open_timed' ? 'green' : (status === 'locked_winner' ? '#ff00cc' : 'red'));
             d.textContent = status === 'open_infinite' ? 'CHUÔNG ĐANG MỞ (VÔ HẠN)' : (status === 'open_timed' ? 'CHUÔNG ĐANG MỞ (CÓ GIỚI HẠN)' : (status === 'locked_winner' ? 'ĐÃ CÓ NGƯỜI BẤM!' : 'CHUÔNG ĐANG KHÓA'));
         }
-        function updateBellOptionsUI(opt) {
-            if (!opt) return;
-            document.getElementById('opt-single-buzz').checked = opt.buzzCount === 'single';
-            document.getElementById('opt-multiple-buzz').checked = opt.buzzCount === 'multiple';
-            document.getElementById('opt-single-winner').checked = opt.buzzMode === 'single-winner';
-            document.getElementById('opt-all-buzz').checked = opt.buzzMode === 'all-buzz';
-        }
+        function updateBellOptionsUI(opt) { if (opt) { document.getElementById('opt-single-buzz').checked = opt.buzzCount === 'single'; document.getElementById('opt-multiple-buzz').checked = opt.buzzCount === 'multiple'; document.getElementById('opt-single-winner').checked = opt.buzzMode === 'single-winner'; document.getElementById('opt-all-buzz').checked = opt.buzzMode === 'all-buzz'; } }
         function renderBuzzTable(buzzes) {
             const tbody = document.getElementById('buzzTableBody');
             if (!buzzes.length) { tbody.innerHTML = `<tr><td colspan="2">Chưa có ai bấm chuông</td></tr>`; return; }
             const isMulti = currentRoomData?.options?.buzzCount === 'multiple';
             const latestMap = new Map();
             if (isMulti) buzzes.forEach(b => { if (!latestMap.has(b.username) || b.time > latestMap.get(b.username).time) latestMap.set(b.username, b); });
-
-            tbody.innerHTML = buzzes.map(b => {
-                const isLatest = isMulti && latestMap.get(b.username).userId === b.userId && latestMap.get(b.username).time === b.time;
-                return `<tr class="${isLatest ? 'latest-buzz' : ''}"><td style="width: 50%;">${b.username}</td><td style="width: 50%;">${(b.time || 0).toFixed(3)}s</td></tr>`;
-            }).join('');
+            tbody.innerHTML = buzzes.map(b => { const isLatest = isMulti && latestMap.get(b.username).userId === b.userId && latestMap.get(b.username).time === b.time; return `<tr class="${isLatest ? 'latest-buzz' : ''}"><td style="width:50%;">${b.username}</td><td style="width:50%;">${(b.time || 0).toFixed(3)}s</td></tr>`; }).join('');
         }
-
-        // Lock User Logic
         function resolveUserId(p) { return String(p.userId || p.id || p.socketId || p.userid || ''); }
         function renderLockList() {
             const contestants = currentParticipants.filter(p => !p.isHost && !p.isManager);
             const div = document.getElementById('lockUsersList');
             if (!contestants.length) { div.innerHTML = "<p>Chưa có người tham gia.</p>"; return; }
             const locked = currentRoomData?.lockedUsers || [];
-            div.innerHTML = contestants.map(p => {
-                const uid = resolveUserId(p);
-                const val = uid || `uname:${encodeURIComponent(p.username)}`;
-                const isLocked = locked.includes(val) || (p.username && locked.includes(p.username));
-                return `<div style="display:flex;align-items:center;"><input type="checkbox" value="${val}" style="height:1.25rem;width:1.25rem;margin-right:0.75rem;" ${isLocked ? 'checked' : ''}><label>${p.username}</label></div>`;
-            }).join('');
+            div.innerHTML = contestants.map(p => { const uid = resolveUserId(p); const val = uid || `uname:${encodeURIComponent(p.username)}`; const isLocked = locked.includes(val) || (p.username && locked.includes(p.username)); return `<div style="display:flex;align-items:center;"><input type="checkbox" value="${val}" style="height:1.25rem;width:1.25rem;margin-right:0.75rem;" ${isLocked ? 'checked' : ''}><label>${p.username}</label></div>`; }).join('');
         }
         function updateLockedUsersUI(locked) { if (!document.querySelector('#lockUsersList input')) renderLockList(); }
 
-        // Button Events
         document.getElementById('createRoomBtn').onclick = () => { if (userId) socket.emit('createRoom'); };
         document.getElementById('joinRoomBtn').onclick = () => openModal('joinRoomModal');
         document.getElementById('closeJoinModalBtn').onclick = () => closeModal('joinRoomModal');
-        document.getElementById('confirmJoinBtn').onclick = () => {
-            const r = document.getElementById('joinRoomCodeInput').value.trim();
-            const u = document.getElementById('joinUsernameInput').value.trim();
-            if (r && u && userId) socket.emit('joinRoomAsManager', { roomId: r, username: u, userId });
-        };
-        document.getElementById('showParticipantsBtn').onclick = () => {
-            const pList = currentParticipants;
-            document.getElementById('participantsList').innerHTML = pList.length ? pList.map(p => `<p style="font-weight:bold;padding:0.5rem;color:${p.isHost ? 'blue' : (p.isManager ? 'red' : 'black')}">${p.username}</p>`).join('') : "<p>Chưa có ai.</p>";
-            openModal('participantsModal');
-        };
+        document.getElementById('confirmJoinBtn').onclick = () => { const r = document.getElementById('joinRoomCodeInput').value.trim(); const u = document.getElementById('joinUsernameInput').value.trim(); if (r && u && userId) socket.emit('joinRoomAsManager', { roomId: r, username: u, userId }); };
+        document.getElementById('showParticipantsBtn').onclick = () => { const pList = currentParticipants; document.getElementById('participantsList').innerHTML = pList.length ? pList.map(p => `<p style="font-weight:bold;padding:0.5rem;color:${p.isHost ? 'blue' : (p.isManager ? 'red' : 'black')}">${p.username}</p>`).join('') : "<p>Chưa có ai.</p>"; openModal('participantsModal'); };
         document.getElementById('showLockUsersBtn').onclick = () => { renderLockList(); openModal('lockUsersModal'); };
-        document.getElementById('saveLockedUsersBtn').onclick = async () => {
-            const l = []; document.querySelectorAll('#lockUsersList input:checked').forEach(c => l.push(c.value.startsWith('uname:') ? decodeURIComponent(c.value.slice(6)) : c.value));
-            await updateRoom({ lockedUsers: l }); closeModal('lockUsersModal');
-        };
+        document.getElementById('saveLockedUsersBtn').onclick = async () => { const l = []; document.querySelectorAll('#lockUsersList input:checked').forEach(c => l.push(c.value.startsWith('uname:') ? decodeURIComponent(c.value.slice(6)) : c.value)); await updateRoom({ lockedUsers: l }); closeModal('lockUsersModal'); };
         document.getElementById('resetAllLocksBtn').onclick = async () => { await updateRoom({ lockedUsers: [] }); renderLockList(); };
         document.getElementById('showBellOptionsBtn').onclick = () => { updateBellOptionsUI(currentRoomData.options); openModal('bellOptionsModal'); };
-        document.getElementById('saveBellOptionsBtn').onclick = async () => {
-            const bc = document.querySelector('input[name="buzzCount"]:checked').value;
-            const bm = document.querySelector('input[name="buzzMode"]:checked').value;
-            await updateRoom({ options: { buzzCount: bc, buzzMode: bm } }); closeModal('bellOptionsModal');
-        };
+        document.getElementById('saveBellOptionsBtn').onclick = async () => { const bc = document.querySelector('input[name="buzzCount"]:checked').value; const bm = document.querySelector('input[name="buzzMode"]:checked').value; await updateRoom({ options: { buzzCount: bc, buzzMode: bm } }); closeModal('bellOptionsModal'); };
         document.getElementById('openBellInfiniteBtn').onclick = () => openBell(false);
         document.getElementById('openBellTimedBtn').onclick = () => openBell(true);
-        document.getElementById('lockBellBtn').onclick = async () => { if (bellTimer) clearTimeout(bellTimer); await updateRoom({ bellStatus: "locked" }); };
-        document.getElementById('resetBellBtn').onclick = async () => {
-            document.getElementById('buzzTableBody').innerHTML = `<tr><td colspan="2">Đang reset...</td></tr>`;
-            await updateRoom({ reset: true, bellStatus: currentRoomData?.bellStatus === 'open_infinite' ? 'open_infinite' : undefined });
-            if (bellTimer) clearTimeout(bellTimer);
-        };
+        document.getElementById('lockBellBtn').onclick = lockBell;
+        document.getElementById('resetBellBtn').onclick = async () => { document.getElementById('buzzTableBody').innerHTML = `<tr><td colspan="2">Đang reset...</td></tr>`; await updateRoom({ reset: true, bellStatus: currentRoomData?.bellStatus === 'open_infinite' ? 'open_infinite' : undefined }); };
     </script>
 </body>
 

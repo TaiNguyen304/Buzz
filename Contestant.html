@@ -163,7 +163,6 @@
             color: white;
         }
 
-        /* CSS TIMER */
         #timerDisplay {
             display: block;
             width: 100%;
@@ -171,7 +170,7 @@
             background-color: #FFFF00;
             color: #000000;
             font-weight: bold;
-            font-size: 1.5rem;
+            font-size: 2.5rem;
             padding: 0.5rem 0;
             border-radius: 0.5rem;
             border: 3px solid #000;
@@ -208,26 +207,13 @@
     <script>
         const SERVER_URL = 'https://buzz1.onrender.com';
         const socket = io(SERVER_URL);
-
         let userId = null, currentRoomId = null, username = null, currentRoomData = null;
         let iHaveBuzzed = false, myBuzzTime = null, countdownInterval = null;
 
-        const els = {
-            login: document.getElementById('loginSection'),
-            buzzer: document.getElementById('buzzerSection'),
-            btn: document.getElementById('buzzerBtn'),
-            status: document.getElementById('buzzerStatus'),
-            err: document.getElementById('errorMessage'),
-            timer: document.getElementById('timerDisplay')
-        };
+        const els = { login: document.getElementById('loginSection'), buzzer: document.getElementById('buzzerSection'), btn: document.getElementById('buzzerBtn'), status: document.getElementById('buzzerStatus'), err: document.getElementById('errorMessage'), timer: document.getElementById('timerDisplay') };
 
-        socket.on('connect', () => {
-            userId = `user-${socket.id}`;
-            document.getElementById('joinRoomBtn').disabled = false;
-        });
-
+        socket.on('connect', () => { userId = `user-${socket.id}`; document.getElementById('joinRoomBtn').disabled = false; });
         socket.on('joinRoomError', (data) => { els.err.textContent = data.message; document.getElementById('joinRoomBtn').disabled = false; });
-
         socket.on('roomJoined', (data) => {
             currentRoomId = data.roomId; username = data.username;
             if (data.userId) userId = String(data.userId);
@@ -237,9 +223,7 @@
             els.err.textContent = "";
             updateBuzzerUI();
         });
-
         socket.on('roomClosed', (data) => { setBuzzerState("locked", data.message); setTimeout(() => window.location.reload(), 3000); });
-
         socket.on('roomStateUpdate', (data) => {
             const oldSession = currentRoomData?.bellSessionId;
             currentRoomData = data;
@@ -262,7 +246,6 @@
         function startCountdown(duration, startTime) {
             if (countdownInterval) clearInterval(countdownInterval);
             const start = Number(startTime);
-
             const updateTimer = () => {
                 const now = Date.now();
                 const elapsed = (now - start) / 1000;
@@ -270,6 +253,8 @@
                 if (remaining <= 0) {
                     els.timer.textContent = "0.000s";
                     clearInterval(countdownInterval);
+                    // TỰ ĐỘNG KHÓA NÚT NGAY LẬP TỨC KHI HẾT GIỜ
+                    setBuzzerState("locked", "Hết giờ!");
                 } else {
                     els.timer.textContent = remaining.toFixed(3) + "s";
                 }
@@ -277,11 +262,7 @@
             updateTimer();
             countdownInterval = setInterval(updateTimer, 33);
         }
-
-        function stopCountdown() {
-            if (countdownInterval) clearInterval(countdownInterval);
-            els.timer.textContent = "0.000s";
-        }
+        function stopCountdown() { if (countdownInterval) clearInterval(countdownInterval); els.timer.textContent = "0.000s"; }
 
         function setBuzzerState(state, msg) {
             els.btn.disabled = true; els.btn.className = ""; els.status.className = "";
@@ -299,8 +280,7 @@
 
         function updateBuzzerUI() {
             if (!currentRoomData) { setBuzzerState("locked", "Đang tải..."); return; }
-
-            // --- XỬ LÝ TIMER ---
+            // XỬ LÝ ĐẾM NGƯỢC
             if (currentRoomData.bellStatus === 'open_timed' && currentRoomData.bellOpenTimestamp && currentRoomData.bellDuration) {
                 startCountdown(currentRoomData.bellDuration, currentRoomData.bellOpenTimestamp);
             } else {
@@ -308,18 +288,10 @@
             }
 
             const locked = (currentRoomData.lockedUsers || []).map(s => String(s).trim());
-            if (locked.includes(String(userId).trim()) || locked.includes(String(username).trim())) {
-                setBuzzerState("locked", "Bạn đã bị Host khóa chuông"); return;
-            }
-            if (currentRoomData.bellStatus === 'locked' || currentRoomData.bellStatus === 'locked_winner') {
-                setBuzzerState("locked", "Chuông đang khóa"); return;
-            }
-            if (iHaveBuzzed && currentRoomData.options.buzzCount === 'single') {
-                setBuzzerState("buzzed", myBuzzTime != null ? `Đã bấm: ${myBuzzTime.toFixed(3)}s` : "Bạn đã bấm!"); return;
-            }
-            if (currentRoomData.bellStatus.startsWith('open')) {
-                setBuzzerState("active", "BẤM CHUÔNG!"); return;
-            }
+            if (locked.includes(String(userId).trim()) || locked.includes(String(username).trim())) { setBuzzerState("locked", "Bạn đã bị Host khóa chuông"); return; }
+            if (currentRoomData.bellStatus === 'locked' || currentRoomData.bellStatus === 'locked_winner') { setBuzzerState("locked", "Chuông đang khóa"); return; }
+            if (iHaveBuzzed && currentRoomData.options.buzzCount === 'single') { setBuzzerState("buzzed", myBuzzTime != null ? `Đã bấm: ${myBuzzTime.toFixed(3)}s` : "Bạn đã bấm!"); return; }
+            if (currentRoomData.bellStatus.startsWith('open')) { setBuzzerState("active", "BẤM CHUÔNG!"); return; }
             setBuzzerState("locked", "Đang chờ Host...");
         }
 
