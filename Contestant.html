@@ -175,9 +175,9 @@
             padding: 0.5rem 0;
             border-radius: 0.5rem;
             border: 3px solid #000;
-            text-align: center;
-            justify-content: center;
-            align-items: center;
+            text-align: center !important;
+            justify-content: center !important;
+            align-items: center !important;
             margin-bottom: 0.5rem;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
         }
@@ -282,9 +282,19 @@
 
         function updateBuzzerUI() {
             if (!currentRoomData) { setBuzzerState("locked", "Đang tải..."); return; }
-            if (currentRoomData.bellStatus === 'open_timed' && currentRoomData.bellOpenTimestamp && currentRoomData.bellDuration) {
-                startCountdown(currentRoomData.bellDuration, currentRoomData.bellOpenTimestamp);
-            } else {
+            // Chỉ chạy countdown khi bellSessionId thay đổi
+            if (currentRoomData.bellStatus === 'open_timed' &&
+                currentRoomData.bellOpenTimestamp &&
+                currentRoomData.bellDuration) {
+
+                if (!window._lastBellSessionId ||
+                    window._lastBellSessionId !== currentRoomData.bellSessionId) {
+
+                    window._lastBellSessionId = currentRoomData.bellSessionId;
+                    startCountdown(currentRoomData.bellDuration, currentRoomData.bellOpenTimestamp);
+                }
+            }
+            else {
                 stopCountdown();
             }
             const locked = (currentRoomData.lockedUsers || []).map(s => String(s).trim());
