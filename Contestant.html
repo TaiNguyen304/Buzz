@@ -10,73 +10,48 @@
         /* Global Styles */
         body {
             background-color: #F3F4F6;
-            /* bg-gray-100 */
             color: #111827;
-            /* text-gray-900 */
             font-family: Arial, Helvetica, sans-serif;
-            /* font-sans */
             padding: 1.5rem;
-            /* p-6 */
             display: flex;
             align-items: center;
-            /* items-center */
             justify-content: center;
-            /* justify-center */
             min-height: 100vh;
-            /* min-h-screen */
         }
 
         .container {
             max-width: 32rem;
-            /* max-w-lg */
             margin-left: auto;
-            /* mx-auto */
             margin-right: auto;
-            /* mx-auto */
             width: 100%;
-            /* w-full */
         }
 
         /* Login Section */
         #loginSection {
             background-color: #FFFFFF;
-            /* bg-white */
             padding: 2rem;
-            /* p-8 */
             border-radius: 1rem;
-            /* rounded-2xl */
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            /* shadow-lg */
         }
 
         #loginSection h1 {
             font-size: 1.875rem;
-            /* text-3xl */
             font-weight: bold;
-            /* font-bold */
             margin-bottom: 1.5rem;
-            /* mb-6 */
             text-align: center;
-            /* text-center */
             color: blue;
-            /* text-blue-600 */
         }
 
         .space-y-4>div {
             margin-bottom: 1rem;
-            /* space-y-4 */
         }
 
         label {
             display: block;
             font-size: 0.875rem;
-            /* text-sm */
             font-weight: bold;
-            /* font-medium */
             color: purple;
-            /* text-gray-700 */
             margin-bottom: 0.25rem;
-            /* mb-1 */
             text-align: center;
             align-items: center;
         }
@@ -85,15 +60,10 @@
         input[type="text"] {
             width: 94%;
             padding: 0.75rem;
-            /* p-3 */
             border: 1px solid #D1D5DB;
-            /* border border-gray-300 */
             border-radius: 0.5rem;
-            /* rounded-lg */
             box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-            /* shadow-sm */
             font-size: 1.125rem;
-            /* text-lg */
             text-align: center;
             align-items: center;
             font-weight: bold;
@@ -101,18 +71,14 @@
 
         input[type="number"] {
             font-family: Arial, Helvetica, sans-serif, monospace;
-            /* font-mono */
         }
 
-        /* CHỈNH SỬA YÊU CẦU 6: Mã phòng màu tím, chữ đậm trắng */
         #roomCodeInput {
             background-color: white;
             color: black !important;
-            /* Dùng !important để ghi đè màu chung */
             font-weight: bold;
             border-color: purple;
             box-shadow: 0 0 0 3px purple;
-            /* ring-blue-500 */
         }
 
         input[type="number"]:focus,
@@ -121,176 +87,123 @@
             outline-offset: 2px;
             border-color: purple;
             box-shadow: 0 0 0 3px purple;
-            /* ring-blue-500 */
         }
 
         #joinRoomBtn {
             padding: 0.75rem 1rem;
-            /* py-3 px-4 */
             border-radius: 0.5rem;
-            /* rounded-lg */
             font-weight: bold;
-            /* font-bold */
             transition-property: all;
-            /* transition-colors duration-200 */
             transition-duration: 200ms;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
-            /* shadow-md */
             background-color: yellow;
-            /* bg-yellow-500 */
             color: #000000;
-            /* text-black */
             width: 100%;
-            /* w-full */
             font-size: 1.125rem;
-            /* text-lg */
             border: none;
             cursor: pointer;
         }
 
         #joinRoomBtn:hover {
             background-color: orange;
-            /* hover:bg-orange-500 */
             color: #FFFFFF;
-            /* hover:text-white */
         }
 
         #errorMessage {
             color: red;
-            /* text-red-600 */
             text-align: center;
-            /* text-center */
             font-weight: bold;
-            /* font-medium */
             margin-top: 1rem;
-            /* mt-4 */
         }
 
         /* Buzzer Section */
         #buzzerSection {
             text-align: center;
-            /* text-center */
         }
 
         #buzzerSection h2 {
             font-size: 1.5rem;
-            /* text-2xl */
             font-weight: bold;
-            /* font-bold */
             margin-bottom: 1rem;
-            /* mb-4 */
         }
 
         #roomCodeDisplay {
             font-family: Arial, Helvetica, sans-serif, monospace;
-            /* font-mono */
             color: blue;
-            /* text-blue-600 */
         }
 
         #buzzerSection h3 {
             font-size: 1.25rem;
-            /* text-xl */
             font-weight: bold;
-            /* font-semibold */
             margin-bottom: 1.5rem;
-            /* mb-6 */
         }
 
         #usernameDisplay {
             color: purple;
-            /* text-indigo-600 */
         }
 
         .buzzer-controls {
             display: flex;
             flex-direction: column;
             align-items: center;
-            /* items-center */
             gap: 1.25rem;
-            /* space-y-5 */
         }
 
         #buzzerBtn {
-            /* Base styles (common for all states, but overridden by JS) */
-            width: 500px;
-            /* w-[500px] */
+            width: 100%;
+            /* Mobile first */
+            max-width: 500px;
             height: 100px;
-            /* h-[50px] */
             font-size: 1.875rem;
-            /* text-3xl */
             font-weight: bold;
-            /* font-extrabold */
             border-radius: 0.75rem;
-            /* rounded-xl */
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            /* shadow-lg */
             transition-property: all;
-            /* transition-all */
             transition-duration: 200ms;
-            /* duration-200 */
             transform-origin: center;
             border: none;
         }
 
         #buzzerBtn.active {
             background-color: green;
-            /* bg-green-500 */
             color: #FFFFFF;
-            /* text-white */
             cursor: pointer;
         }
 
         #buzzerBtn.active:hover {
             background-color: orange;
-            /* hover:bg-orange-500 */
             transform: scale(1.05);
-            /* hover:scale-105 */
         }
 
         #buzzerBtn.buzzed {
             background-color: blue;
-            /* bg-blue-600 */
             color: #FFFFFF;
-            /* text-white */
             cursor: not-allowed;
         }
 
         #buzzerBtn.locked {
             background-color: red;
-            /* bg-red-600 */
             color: #FFFFFF;
-            /* text-white */
             cursor: not-allowed;
         }
 
         /* Buzzer Status Display */
         #buzzerStatus {
             width: 100%;
-            /* w-full */
             max-width: 32rem;
-            /* max-w-lg */
             height: 3rem;
-            /* h-12 */
             display: flex;
             align-items: center;
-            /* items-center */
             justify-content: center;
-            /* justify-center */
             font-size: 1.125rem;
-            /* text-lg */
             font-weight: bold;
-            /* font-bold */
             border-radius: 0.5rem;
-            /* rounded-lg */
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
-            /* shadow-md */
         }
 
         #buzzerStatus.status-waiting {
             background-color: #ff00cc;
             color: #FFFFFF;
-            /* text-white */
         }
 
         #buzzerStatus.status-active {
@@ -300,20 +213,23 @@
 
         #buzzerStatus.status-buzzed {
             background-color: red;
-            /* bg-red-600 */
             color: #FFFFFF;
-            /* text-white */
         }
 
-        .latest-buzz {
-            background-color: blue !important;
-            color: white !important;
-        }
-
-        .latest-buzz td {
-            background-color: blue !important;
-            color: white !important;
+        /* --- CSS MỚI CHO TIMER --- */
+        #timerDisplay {
+            display: none; /* Mặc định ẩn */
+            width: 100%;
+            max-width: 500px; /* Cùng chiều rộng nút bấm */
+            background-color: #FFFF00; /* Màu vàng */
+            color: #000000; /* Chữ đen */
             font-weight: bold;
+            font-size: 2rem; /* Chữ to */
+            padding: 0.5rem 0;
+            margin-bottom: 1rem;
+            border-radius: 0.5rem;
+            border: 2px solid #000; /* Viền đen để nổi bật */
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
     </style>
 </head>
@@ -343,6 +259,8 @@
             <h3>Chào, <span id="usernameDisplay"></span></h3>
 
             <div class="buzzer-controls">
+                <div id="timerDisplay">0.000s</div>
+
                 <button id="buzzerBtn" disabled>Đang kết nối...</button>
                 <div id="buzzerStatus" class="status-waiting">Vui lòng chờ Host...</div>
             </div>
@@ -355,8 +273,6 @@
         const SERVER_URL = 'https://buzz1.onrender.com';
         const socket = io(SERVER_URL);
 
-        // Import thư viện Socket.IO client (cần đặt trước script này)
-
         // Biến toàn cục
         let userId = null;
         let currentRoomId = null;
@@ -364,6 +280,9 @@
         let currentRoomData = null;
         let iHaveBuzzed = false;
         let myBuzzTime = null;
+        
+        // Biến Timer
+        let countdownInterval = null;
 
         // --- CÁC BIẾN DOM ---
         const loginSection = document.getElementById('loginSection');
@@ -371,18 +290,18 @@
         const buzzerBtn = document.getElementById('buzzerBtn');
         const buzzerStatus = document.getElementById('buzzerStatus');
         const errorMessage = document.getElementById('errorMessage');
+        const timerDisplay = document.getElementById('timerDisplay');
 
         // --- SOCKET LISTENERS ---
         socket.on('connect', () => {
-            userId = `user-${socket.id}`; // Tạm gán userId = socket.id (sẽ được server gán lại)
+            userId = `user-${socket.id}`;
             document.getElementById('joinRoomBtn').textContent = 'Xác nhận';
             document.getElementById('joinRoomBtn').disabled = false;
-            console.log("Connected to server. Temp User ID:", userId);
         });
 
         socket.on('joinRoomError', (data) => {
             errorMessage.textContent = data.message;
-            document.getElementById('joinRoomBtn').disabled = false; // Mở lại nút nếu lỗi
+            document.getElementById('joinRoomBtn').disabled = false;
         });
 
         socket.on('roomJoined', (data) => {
@@ -395,20 +314,15 @@
             else if (data.socketId) resolvedId = data.socketId;
 
             if (resolvedId) {
-                userId = String(resolvedId); // <-- Luôn là String
+                userId = String(resolvedId);
             }
-            // Nếu không tìm thấy, userId sẽ giữ nguyên giá trị 'user-socket.id' từ 'connect'
             
-            console.log("Room Joined. Final UserID is:", userId); // Thêm log để kiểm tra
-
-            // Chuyển giao diện
             loginSection.style.display = 'none';
             buzzerSection.style.display = 'block';
             document.getElementById('roomCodeDisplay').textContent = currentRoomId;
             document.getElementById('usernameDisplay').textContent = username;
             errorMessage.textContent = "";
 
-            // Đặt lại trạng thái bấm chuông
             iHaveBuzzed = false;
             myBuzzTime = null;
             updateBuzzerUI();
@@ -416,21 +330,18 @@
 
         socket.on('roomClosed', (data) => {
             setBuzzerState("locked", data.message);
-            setTimeout(() => window.location.reload(), 3000); // Tự động load lại
+            setTimeout(() => window.location.reload(), 3000);
         });
 
         socket.on('roomStateUpdate', (data) => {
             const oldBellSessionId = currentRoomData ? currentRoomData.bellSessionId : null;
             currentRoomData = data;
 
-            // Nếu Host reset chuông (bellSessionId thay đổi) hoặc phiên chuông mới
             if (oldBellSessionId && oldBellSessionId !== currentRoomData.bellSessionId) {
                 iHaveBuzzed = false;
                 myBuzzTime = null;
             }
 
-            // Luôn kiểm tra xem mình đã bấm chuông chưa trong phiên hiện tại
-            // Sửa logic: phải kiểm tra cả userId và bellSessionId
             const myBuzzInThisSession = currentRoomData.buzzes.find(b => b.userId === userId && b.bellSessionId === currentRoomData.bellSessionId);
 
             if (myBuzzInThisSession) {
@@ -441,7 +352,6 @@
                 myBuzzTime = null;
             }
 
-            // Luôn cập nhật UI dựa trên trạng thái mới nhất
             updateBuzzerUI();
         });
 
@@ -470,6 +380,41 @@
 
             socket.emit('joinRoom', { roomId, username: inputUsername });
         }
+
+        // --- HÀM QUẢN LÝ TIMER ---
+        function startCountdown(duration, startTime) {
+            // Xóa interval cũ nếu có
+            if (countdownInterval) clearInterval(countdownInterval);
+            
+            timerDisplay.style.display = 'block'; // Hiện ô chữ nhật vàng
+            
+            const updateTimer = () => {
+                const now = Date.now();
+                // Tính thời gian đã trôi qua (giây)
+                const elapsed = (now - startTime) / 1000;
+                // Thời gian còn lại
+                const remaining = duration - elapsed;
+
+                if (remaining <= 0) {
+                    timerDisplay.textContent = "Thời gian: 0.000s";
+                    clearInterval(countdownInterval);
+                } else {
+                    timerDisplay.textContent = "Thời gian: " + remaining.toFixed(3) + "s";
+                }
+            };
+
+            // Chạy ngay lập tức 1 lần để không bị delay
+            updateTimer();
+            // Cập nhật mỗi 30ms
+            countdownInterval = setInterval(updateTimer, 30);
+        }
+
+        function stopCountdown() {
+            if (countdownInterval) clearInterval(countdownInterval);
+            timerDisplay.style.display = 'none'; // Ẩn đi khi không dùng
+            timerDisplay.textContent = "Thời gian: 0.000s";
+        }
+
 
         // --- CẬP NHẬT GIAO DIỆN CHUÔNG ---
         function setBuzzerState(state, message) {
@@ -507,30 +452,36 @@
                 return;
             }
 
+            // --- XỬ LÝ TIMER ---
+            // Nếu trạng thái là mở có giới hạn VÀ có timestamp VÀ có duration
+            if (currentRoomData.bellStatus === 'open_timed' && currentRoomData.bellOpenTimestamp && currentRoomData.bellDuration) {
+                startCountdown(currentRoomData.bellDuration, currentRoomData.bellOpenTimestamp);
+            } else {
+                // Nếu không phải chế độ đếm giờ, hoặc đã bị khóa -> Dừng timer
+                stopCountdown();
+            }
+            // -------------------
+
             // 1. Bị host khóa? 
             const lockedUsersList = currentRoomData.lockedUsers || [];
-            
-            // --- SỬA LỖI TẠI ĐÂY: Chuẩn hóa dữ liệu sang chuỗi để so sánh nhất quán ---
             const normalizedLockedList = lockedUsersList.map(item => String(item).trim());
             const normalizedUserId = String(userId).trim();
             const normalizedUsername = String(username).trim();
 
             const isLockedByHost = normalizedLockedList.includes(normalizedUserId) || normalizedLockedList.includes(normalizedUsername);
-            // --- KẾT THÚC SỬA LỖI ---
-
 
             if (isLockedByHost) {
                 setBuzzerState("locked", "Bạn đã bị Host khóa chuông");
                 return;
             }
 
-            // 2. Chuông đang khóa (hoặc đã có người thắng trong chế độ single-winner)?
+            // 2. Chuông đang khóa?
             if (currentRoomData.bellStatus === 'locked' || currentRoomData.bellStatus === 'locked_winner') {
                 setBuzzerState("locked", "Chuông đang khóa");
                 return;
             }
 
-            // 3. Đã bấm chuông (và chỉ được bấm 1 lần)?
+            // 3. Đã bấm chuông?
             if (iHaveBuzzed && currentRoomData.options.buzzCount === 'single') {
                 const timeMessage = myBuzzTime !== null && myBuzzTime >= 0
                     ? `Đã bấm chuông: ${myBuzzTime.toFixed(3)}s`
@@ -539,36 +490,21 @@
                 return;
             }
 
-            // 4. Chuông đang mở (Sau khi đã kiểm tra bị khóa và chế độ single buzz)
+            // 4. Chuông đang mở
             if (currentRoomData.bellStatus.startsWith('open')) {
                 setBuzzerState("active", "BẤM CHUÔNG!");
                 return;
             }
 
-            // Mặc định
             setBuzzerState("locked", "Đang chờ Host...");
         }
 
         // --- XỬ LÝ BẤM CHUÔNG ---
-        // Contestant.html
         function handleBuzzerClick() {
-            console.log("handleBuzzerClick CALLED"); // <-- THÊM DÒNG 1
-
-            // Thêm kiểm tra bellSessionId
             if (!currentRoomData || !userId || buzzerBtn.disabled || !currentRoomData.bellSessionId) {
-
-                // THÊM CÁC LOG CHI TIẾT NÀY VÀO
-                console.warn("--- BUZZ FAILED ---");
-                console.warn("!currentRoomData: ", !currentRoomData);
-                console.warn("!userId: ", !userId);
-                console.warn("buzzerBtn.disabled: ", buzzerBtn.disabled);
-                console.warn("!currentRoomData.bellSessionId: ", !currentRoomData.bellSessionId);
-                console.warn("currentRoomData: ", currentRoomData); // In ra toàn bộ data
-                console.warn("---------------------");
                 return;
             }
 
-            // Tạm khóa UI ngay lập tức
             setBuzzerState("buzzed", "Đã bấm!");
 
             socket.emit('buzz', {
@@ -577,8 +513,6 @@
                 userId: userId,
                 bellSessionId: currentRoomData.bellSessionId
             });
-
-            // UI sẽ được cập nhật chính thức khi server gửi lại 'roomStateUpdate'
         }
 
         // --- GẮN SỰ KIỆN ---
@@ -592,7 +526,6 @@
             }
         });
 
-        // Cập nhật UI lần đầu
         setBuzzerState("locked", "Vui lòng chờ Host...");
 
     </script>
