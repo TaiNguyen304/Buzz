@@ -16,30 +16,6 @@ const io = new Server(server, {
 });
 
 const PORT = process.env.PORT || 3000;
-
-// ==========================================================
-// CƠ SỞ DỮ LIỆU GIẢ LẬP (In-Memory Database)
-// ==========================================================
-/**
- * rooms: {
- * '123456': {
- * hostId: 'socketIdHost',
- * bellStatus: 'locked', // locked, open_infinite, open_timed, locked_winner
- * bellOpenTimestamp: null,
- * bellSessionId: 'uuid123',
- * lockedUsers: ['userId2'],
- * options: { buzzCount: 'single', buzzMode: 'all-buzz' },
- * participants: { 
- * 'socketIdHost': { username: 'Host (Bạn)', isHost: true, userId: 'host-socketIdHost' },
- * 'socketIdContestant1': { userId: 'user1', username: 'An', isHost: false, isManager: false },
- * 'socketIdManager1': { userId: 'manager1', username: 'Quản Lý', isHost: false, isManager: true }, // <<< Quản lý
- * },
- * buzzes: [ 
- * { userId: 'user1', username: 'An', time: 1.234, bellSessionId: 'uuid123' },
- * ],
- * }
- * }
- */
 const rooms = {};
 const userIdMap = {}; // socketId -> userId
 
