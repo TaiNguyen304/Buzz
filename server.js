@@ -49,7 +49,8 @@ function broadcastRoomState(roomId) {
         lockedUsers: room.lockedUsers,
         options: room.options,
         participants: participantsArray,
-        buzzes: room.buzzes
+        buzzes: room.buzzes,
+        bellDuration: room.bellDuration ?? null
     };
 
     io.to(roomId).emit('roomStateUpdate', roomState);
@@ -118,15 +119,33 @@ io.on('connection', (socket) => {
             room.bellSessionId = Date.now().toString(); // Tạo session mới
         }
 
-        // Cập nhật trạng thái chuông
+                // Cập nhật trạng thái chuông
         if (data.bellStatus) {
             room.bellStatus = data.bellStatus;
+
             if (data.bellStatus.startsWith('open')) {
                 room.bellOpenTimestamp = Date.now();
-                // Không tạo session mới khi mở lại chuông trong cùng 1 vòng
-                // session mới chỉ tạo khi Host bấm Reset (đã xử lý ở trên)
-            } else if (data.bellStatus === 'locked') {
+
+                // Chỉ lưu bellDuration khi mở chuông có giới hạn thời gian
+                if (data.bellStatus === 'open_timed' && data.bellDuration !== undefined) {
+                    room.bellDuration = data.bellDuration;
+                }
             }
+
+            // Khi khóa chuông hoặc reset → xóa bellDuration
+            if (data.bellStatus.startsWith('locked') || data.bellStatus === 'locked_winner') {
+                room.bellDuration = null;
+            }
+        }
+
+        // Cho phép cập nhật bellDuration riêng (nếu có)
+        if (data.bellDuration !== undefined) {
+            room.bellDuration = data.bellDuration > 0 ? data.bellDuration : null;
+        }
+
+        // Khi reset hoặc chuyển sang trạng thái không mở → xóa duration
+        if (data.reset) {
+            room.bellDuration = null;
         }
 
         // Cập nhật danh sách người bị khóa
