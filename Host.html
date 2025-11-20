@@ -87,7 +87,7 @@
             color: #FFFFFF;
         }
 
-        /* [FIX] Font Arial cho Mã phòng */
+        /* Font Arial cho Mã phòng */
         #roomCodeDisplay {
             display: none;
             padding: 0.75rem;
@@ -354,11 +354,12 @@
         #hostTimerDisplay {
             display: block;
             width: 80%;
+            height: 50px;
             margin: 0 auto 1rem auto;
             background-color: #FFFF00;
             color: #000000;
             font-weight: bold;
-            font-size: 2rem;
+            font-size: 1.5rem;
             padding: 0.75rem;
             border-radius: 0.5rem;
             text-align: center;
@@ -550,16 +551,22 @@
 
         async function openBell(isTimed = false) {
             if (!currentRoomId || (!isHost && !isManager)) return;
-            const duration = parseInt(document.getElementById('bellTimeInput').value) || 10;
+
+            // [FIX] Đảm bảo chỉ đọc giá trị số nguyên từ input
+            const durationInput = document.getElementById('bellTimeInput');
+            const duration = parseInt(durationInput.value) || 10;
+
             let status = isTimed ? "open_timed" : "open_infinite";
 
-            // [FIX] Bỏ timestamp khỏi payload client, để Server tự set
-            let payload = { bellStatus: status, reset: false, bellDuration: isTimed ? duration : null };
+            // Payload chỉ gửi duration (đã được sửa lỗi +5s)
+            let payload = {
+                bellStatus: status,
+                reset: false,
+                bellDuration: isTimed ? duration : null
+            };
 
-            if (isTimed) {
-                // Hiển thị ngay lập tức (Optimistic UI) với thời gian local, sau đó sẽ được sync lại bởi server
-                startCountdown(duration, Date.now());
-            }
+            // Bỏ chạy countdown ngay lập tức (optimistic) trên Host
+            // Đồng hồ sẽ bắt đầu chạy khi nhận được roomStateUpdate từ Server (đảm bảo đồng bộ)
             await updateRoom(payload);
         }
 
@@ -571,7 +578,7 @@
 
         async function updateRoom(data) { socket.emit('hostUpdateRoom', { roomId: currentRoomId, data: data }); }
 
-        // Các hàm tiện ích khác
+        // Các hàm tiện ích khác (giữ nguyên)
         function enableButtons() {
             const isController = isHost || isManager;
             const ids = ['openBellInfiniteBtn', 'openBellTimedBtn', 'lockBellBtn', 'resetBellBtn', 'showLockUsersBtn', 'showBellOptionsBtn'];
