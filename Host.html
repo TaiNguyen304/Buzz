@@ -7,7 +7,7 @@
     <title>Host - Bảng điều khiển</title>
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <style>
-        /* --- GIỮ NGUYÊN CSS CŨ --- */
+        /* Custom Scrollbar for Modal */
         .modal-body::-webkit-scrollbar {
             width: 8px;
         }
@@ -572,36 +572,41 @@
             updateBellOptionsUI(data.options);
             renderBuzzTable(data.buzzes || [], data.bellOpenTimestamp);
 
-            // Chỉ đếm ngược khi có đủ duration VÀ timestamp
+            // XỬ LÝ ĐẾM NGƯỢC
             if (data.bellStatus === 'open_timed' && data.bellOpenTimestamp && data.bellDuration) {
                 startCountdown(data.bellDuration, data.bellOpenTimestamp);
             } else {
                 stopCountdown();
             }
+
             const lockedFromServer = Array.isArray(data.lockedUsers) ? data.lockedUsers : null;
             updateLockedUsersUI(lockedFromServer);
         }
 
         function startCountdown(duration, startTime) {
             if (countdownInterval) clearInterval(countdownInterval);
+
             const updateTimer = () => {
                 const now = Date.now();
-                const elapsed = (now - startTime) / 1000;
+                // Tính thời gian trôi qua dựa trên timestamp server gửi về
+                const elapsed = (now - Number(startTime)) / 1000;
                 const remaining = duration - elapsed;
+
                 if (remaining <= 0) {
-                    hostTimerDisplay.textContent = "0.000s";
+                    hostTimerDisplay.textContent = "Thời gian: 0.000s";
                     clearInterval(countdownInterval);
                 } else {
-                    hostTimerDisplay.textContent = remaining.toFixed(3) + "s";
+                    hostTimerDisplay.textContent = "Thời gian: " + remaining.toFixed(3) + "s";
                 }
             };
+
             updateTimer();
             countdownInterval = setInterval(updateTimer, 30);
         }
 
         function stopCountdown() {
             if (countdownInterval) clearInterval(countdownInterval);
-            hostTimerDisplay.textContent = "0.000s";
+            hostTimerDisplay.textContent = "Thời gian: 0.000s";
         }
 
         function enableButtons() {
@@ -790,20 +795,23 @@
             socket.emit('hostUpdateRoom', { roomId: currentRoomId, data: data });
         }
 
+        // --- ĐÃ SỬA: Thêm bellOpenTimestamp vào payload ---
         async function openBell(isTimed = false) {
             if (!currentRoomId || (!isHost && !isManager)) return;
             let status = "open_infinite";
             let payload = { reset: false };
+
             if (isTimed) {
                 status = "open_timed";
                 const duration = parseInt(document.getElementById('bellTimeInput').value) || 10;
                 if (bellTimer) clearTimeout(bellTimer);
                 bellTimer = setTimeout(() => { lockBell(); }, duration * 1000);
 
-                // --- CẬP NHẬT: Gửi kèm thời gian bắt đầu và độ dài ---
+                // QUAN TRỌNG: Gửi thời gian bắt đầu (timestamp) để các máy khác tính toán
                 payload.bellDuration = duration;
                 payload.bellOpenTimestamp = Date.now();
             }
+
             payload.bellStatus = status;
             await updateRoom(payload);
         }

@@ -363,13 +363,13 @@
 
             const updateTimer = () => {
                 const now = Date.now();
-                const elapsed = (now - startTime) / 1000;
+                const elapsed = (now - Number(startTime)) / 1000;
                 const remaining = duration - elapsed;
                 if (remaining <= 0) {
-                    timerDisplay.textContent = "0.000s";
+                    timerDisplay.textContent = "Thời gian: 0.000s";
                     clearInterval(countdownInterval);
                 } else {
-                    timerDisplay.textContent = remaining.toFixed(3) + "s";
+                    timerDisplay.textContent = "Thời gian: " + remaining.toFixed(3) + "s";
                 }
             };
             updateTimer();
@@ -378,7 +378,7 @@
 
         function stopCountdown() {
             if (countdownInterval) clearInterval(countdownInterval);
-            timerDisplay.textContent = "0.000s"; // Reset về 0
+            timerDisplay.textContent = "Thời gian: 0.000s"; // Reset về 0
         }
 
         function setBuzzerState(state, message) {
