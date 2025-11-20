@@ -343,9 +343,6 @@
             <h3>Chào, <span id="usernameDisplay"></span></h3>
 
             <div class="buzzer-controls">
-                <div id="countdownDisplay"
-                    style="color: blue; font-weight: bold; text-align: center; font-size: 2.5rem; display: none; margin-bottom: 1rem;">
-                    Thời gian: --</div>
                 <button id="buzzerBtn" disabled>Đang kết nối...</button>
                 <div id="buzzerStatus" class="status-waiting">Vui lòng chờ Host...</div>
             </div>
@@ -367,7 +364,6 @@
         let currentRoomData = null;
         let iHaveBuzzed = false;
         let myBuzzTime = null;
-        let countdownInterval = null;
 
         // --- CÁC BIẾN DOM ---
         const loginSection = document.getElementById('loginSection');
@@ -402,7 +398,7 @@
                 userId = String(resolvedId); // <-- Luôn là String
             }
             // Nếu không tìm thấy, userId sẽ giữ nguyên giá trị 'user-socket.id' từ 'connect'
-
+            
             console.log("Room Joined. Final UserID is:", userId); // Thêm log để kiểm tra
 
             // Chuyển giao diện
@@ -447,14 +443,6 @@
 
             // Luôn cập nhật UI dựa trên trạng thái mới nhất
             updateBuzzerUI();
-            updateCountdown();
-
-            if (currentRoomData.bellStatus === 'open_timed' && !countdownInterval) {
-                countdownInterval = setInterval(updateCountdown, 50);
-            } else if (currentRoomData.bellStatus !== 'open_timed' && countdownInterval) {
-                clearInterval(countdownInterval);
-                countdownInterval = null;
-            }
         });
 
 
@@ -521,7 +509,7 @@
 
             // 1. Bị host khóa? 
             const lockedUsersList = currentRoomData.lockedUsers || [];
-
+            
             // --- SỬA LỖI TẠI ĐÂY: Chuẩn hóa dữ liệu sang chuỗi để so sánh nhất quán ---
             const normalizedLockedList = lockedUsersList.map(item => String(item).trim());
             const normalizedUserId = String(userId).trim();
@@ -600,33 +588,6 @@
         // Cập nhật UI lần đầu
         setBuzzerState("locked", "Vui lòng chờ Host...");
 
-        function updateCountdown() {
-            const display = document.getElementById('countdownDisplay');
-            if (!currentRoomData || currentRoomData.bellStatus !== 'open_timed' || !currentRoomData.bellOpenTimestamp || currentRoomData.bellDuration == null) {
-                display.style.display = 'none';
-                display.textContent = 'Thời gian: --';
-                if (countdownInterval) {
-                    clearInterval(countdownInterval);
-                    countdownInterval = null;
-                }
-                return;
-            }
-
-            const elapsed = (Date.now() - currentRoomData.bellOpenTimestamp) / 1000;
-            let remaining = currentRoomData.bellDuration - elapsed;
-            if (remaining < 0) {
-                remaining = 0;
-                setBuzzerState('locked', 'Hết thời gian!');
-            }
-
-            display.textContent = `Thời gian: ${remaining.toFixed(3)}s`;
-            display.style.display = 'block';
-
-            if (remaining <= 0) {
-                clearInterval(countdownInterval);
-                countdownInterval = null;
-            }
-        }
     </script>
 </body>
 

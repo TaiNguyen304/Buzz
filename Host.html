@@ -512,9 +512,6 @@
         <div id="bellControlSection" style="display: none;">
             <div id="bellStatusDisplay">CHUÔNG ĐANG KHÓA</div>
 
-            <div id="countdownDisplay"
-                style="color: blue; font-weight: bold; text-align: center; font-size: 1.5rem; display: none; margin-bottom: 8px;">
-                Thời gian: --</div>
             <label for="bellTimeInput">Thời gian mở chuông (giây):</label>
             <input type="number" id="bellTimeInput" value="10">
 
@@ -599,14 +596,12 @@
                             <div class="flex items-center">
                                 <input type="radio" id="opt-single-winner" name="buzzMode" value="single-winner" checked
                                     class="mr-3">
-                                <label for="opt-single-winner" class="text-base text-gray-900">Một người bấm: Khóa
-                                    chuông
+                                <label for="opt-single-winner" class="text-base text-gray-900">Một người bấm: Khóa chuông
                                     ngay lập tức</label>
                             </div>
                             <div class="flex items-center">
                                 <input type="radio" id="opt-all-buzz" name="buzzMode" value="all-buzz" class="mr-3">
-                                <label for="opt-all-buzz" class="text-base text-gray-900">Tất cả đều bấm: Chỉ khóa
-                                    chuông
+                                <label for="opt-all-buzz" class="text-base text-gray-900">Tất cả đều bấm: Chỉ khóa chuông
                                     khi Host bấm Khóa</label>
                             </div>
                         </div>
@@ -650,7 +645,6 @@
         let currentRoomId = null;
         let currentRoomData = null;
         let bellTimer = null;
-        let countdownInterval = null;
         let currentParticipants = [];
         let isHost = false;
         let isManager = false;
@@ -725,38 +719,18 @@
         });
 
         // --- REFACTOR: TÁCH HÀM XỬ LÝ STATE RIÊNG ---
-        socket.on('roomStateUpdate', (data) => {
-            currentRoomData = data;
-            currentParticipants = data.participants || [];
-            currentBuzzes = data.buzzes || [];
-
-            // Cập nhật mã phòng nếu là Manager tham gia phòng có sẵn
-            if (!currentRoomId && data.roomId) {
-                currentRoomId = data.roomId;
-                document.getElementById('roomCodeDisplay').textContent = currentRoomId;
-                document.getElementById('roomCodeDisplay').style.display = 'block';
-            }
-
-            updateBellUI();
-            renderBuzzTable();
-            updateCountdown();
-
-            // Bật interval đếm ngược nếu đang ở chế độ có giới hạn thời gian
-            if (data.bellStatus === 'open_timed' && !countdownInterval) {
-                countdownInterval = setInterval(updateCountdown, 50);
-            } else if (data.bellStatus !== 'open_timed' && countdownInterval) {
-                clearInterval(countdownInterval);
-                countdownInterval = null;
-                const display = document.getElementById('countdownDisplay');
-                if (display) display.style.display = 'none';
-            }
-        });
+        socket.on('roomStateUpdate', handleRoomStateUpdate);
 
         function handleRoomStateUpdate(data) {
             currentRoomData = data;
 
-            currentParticipants = Array.isArray(data.participants) ? data.participants : [];
+            // <<< FIX LỖI: Đảm bảo data.participants là Array trước khi gán
+            // Server đã gửi về Array (participantsArray), nhưng ta cần đảm bảo kiểu dữ liệu hợp lệ
+            // Nếu data.participants không phải Array, gán mảng rỗng []
+            currentParticipants = Array.isArray(data.participants) ? data.participants : []; 
 
+            // Đếm số lượng Player (không phải Host/Manager)
+            // Lỗi TypeError: currentParticipants.filter is not a function đã được sửa
             const playerCount = currentParticipants.filter(p => !p.isHost && !p.isManager).length;
             document.getElementById('showParticipantsBtn').textContent = `Danh sách tham gia (${playerCount})`;
 
@@ -773,18 +747,18 @@
         // --- UTILS ---
         function enableButtons() {
             // Logic mới kiểm tra cả Host và Manager
-            const isController = isHost || isManager;
+            const isController = isHost || isManager; 
 
             // Kích hoạt tất cả các nút điều khiển
             document.getElementById('showParticipantsBtn').disabled = false; // Luôn hiển thị
-
+            
             document.getElementById('openBellInfiniteBtn').disabled = !isController;
             document.getElementById('openBellTimedBtn').disabled = !isController;
             document.getElementById('lockBellBtn').disabled = !isController;
             document.getElementById('resetBellBtn').disabled = !isController;
             document.getElementById('showLockUsersBtn').disabled = !isController;
             document.getElementById('showBellOptionsBtn').disabled = !isController;
-
+            
             // Nút "Danh sách tham gia" luôn hoạt động khi đã join phòng.
             if (!currentRoomId) {
                 document.getElementById('showParticipantsBtn').disabled = true;
@@ -1082,38 +1056,35 @@
         async function updateRoom(data) {
             // Thêm kiểm tra quyền truy cập cho updateRoom
             if (!currentRoomId || (!isHost && !isManager)) return;
-
+            
             socket.emit('hostUpdateRoom', { roomId: currentRoomId, data: data });
         }
 
         // --- QUẢN LÝ CHUÔNG ---
         async function openBell(isTimed = false) {
-            let duration = 0;
+            // Thêm kiểm tra quyền truy cập
+            if (!currentRoomId || (!isHost && !isManager)) return;
+
+            let status = "open_infinite";
             if (isTimed) {
-                duration = parseInt(document.getElementById('bellTimeInput').value) || 10;
-            }
+                status = "open_timed";
+                const duration = parseInt(document.getElementById('bellTimeInput').value) || 10;
+                if (bellTimer) clearTimeout(bellTimer);
 
-            const payload = {
-                bellStatus: isTimed ? 'open_timed' : 'open_infinite',
-                bellDuration: isTimed ? duration : null,
-                reset: false
-            };
-
-            await updateRoom(payload);
-
-            if (bellTimer) clearTimeout(bellTimer);
-            if (isTimed) {
                 bellTimer = setTimeout(() => {
                     lockBell();
                 }, duration * 1000);
             }
-
-            updateCountdown();
+            // Gửi trạng thái mới, không reset. Server phải thiết lập bellOpenTimestamp
+            await updateRoom({ bellStatus: status, reset: false });
         }
 
         async function lockBell() {
+            // Thêm kiểm tra quyền truy cập
+            if (!currentRoomId || (!isHost && !isManager)) return;
+
             if (bellTimer) clearTimeout(bellTimer);
-            await updateRoom({ bellStatus: 'locked', bellDuration: null });
+            await updateRoom({ bellStatus: "locked" }); // Chỉ cập nhật trạng thái
         }
 
         async function resetBell() {
@@ -1140,7 +1111,7 @@
             }
 
             await updateRoom(payload);
-
+            
             // Nếu dùng chế độ hẹn giờ thì xóa timer đi (vì reset là làm mới)
             if (bellTimer) clearTimeout(bellTimer);
         }
@@ -1207,31 +1178,6 @@
         // Vô hiệu hóa nút tham gia ban đầu
         document.getElementById('joinRoomBtn').disabled = true;
         document.getElementById('joinRoomBtn').textContent = 'Đang kết nối...';
-
-        function updateCountdown() {
-            const display = document.getElementById('countdownDisplay');
-            if (!currentRoomData || currentRoomData.bellStatus !== 'open_timed' || !currentRoomData.bellOpenTimestamp || currentRoomData.bellDuration == null) {
-                display.style.display = 'none';
-                display.textContent = 'Thời gian: --';
-                if (countdownInterval) {
-                    clearInterval(countdownInterval);
-                    countdownInterval = null;
-                }
-                return;
-            }
-
-            const elapsed = (Date.now() - currentRoomData.bellOpenTimestamp) / 1000;
-            let remaining = currentRoomData.bellDuration - elapsed;
-            if (remaining < 0) remaining = 0;
-
-            display.textContent = `Thời gian: ${remaining.toFixed(3)}s`;
-            display.style.display = 'block';
-
-            if (remaining <= 0) {
-                clearInterval(countdownInterval);
-                countdownInterval = null;
-            }
-        }
     </script>
 </body>
 
