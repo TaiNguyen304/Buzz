@@ -7,6 +7,7 @@
     <title>Host - Bảng điều khiển</title>
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <style>
+        /* --- GIỮ NGUYÊN CSS CŨ --- */
         .modal-body::-webkit-scrollbar {
             width: 8px;
         }
@@ -235,10 +236,6 @@
             font-weight: bold;
         }
 
-        .text-red-600 {
-            color: #DC2626;
-        }
-
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -354,10 +351,9 @@
             max-height: none;
         }
 
-        /* --- CẬP NHẬT CSS TIMER: Luôn hiển thị --- */
+        /* --- CSS TIMER --- */
         #hostTimerDisplay {
             display: block;
-            /* Luôn hiển thị */
             width: 80%;
             margin: 0 auto 1rem auto;
             background-color: #FFFF00;
@@ -576,6 +572,7 @@
             updateBellOptionsUI(data.options);
             renderBuzzTable(data.buzzes || [], data.bellOpenTimestamp);
 
+            // Chỉ đếm ngược khi có đủ duration VÀ timestamp
             if (data.bellStatus === 'open_timed' && data.bellOpenTimestamp && data.bellDuration) {
                 startCountdown(data.bellDuration, data.bellOpenTimestamp);
             } else {
@@ -802,7 +799,10 @@
                 const duration = parseInt(document.getElementById('bellTimeInput').value) || 10;
                 if (bellTimer) clearTimeout(bellTimer);
                 bellTimer = setTimeout(() => { lockBell(); }, duration * 1000);
+
+                // --- CẬP NHẬT: Gửi kèm thời gian bắt đầu và độ dài ---
                 payload.bellDuration = duration;
+                payload.bellOpenTimestamp = Date.now();
             }
             payload.bellStatus = status;
             await updateRoom(payload);
