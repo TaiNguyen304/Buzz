@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buzz Game</title>
+    <style>
+        /* Thiết lập layout căn giữa màn hình */
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #F3F4F6; /* Màu nền xám nhạt giống Host/Contestant */
+            font-family: Arial, Helvetica, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh; /* Chiều cao full màn hình */
+        }
+
+        h1 {
+            color: blue;
+            font-weight: bold;
+            margin-bottom: 3rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* Container chứa các nút để căn dọc */
+        .button-container {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem; /* Khoảng cách giữa 2 nút */
+        }
+
+        /* Style chung cho nút bấm */
+        .nav-btn {
+            width: 500px;
+            height: 100px;
+            background-color: red;
+            color: white;
+            font-weight: bold;
+            font-size: 2rem; /* Cỡ chữ lớn cho dễ nhìn */
+            border: none;
+            border-radius: 1rem; /* Bo tròn góc nhẹ cho đẹp */
+            cursor: pointer;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            transition: background-color 0.2s ease, transform 0.1s;
+        }
+
+        /* Hiệu ứng khi hover (di chuột vào) */
+        .nav-btn:hover {
+            background-color: orange;
+            color: white; /* Đảm bảo chữ vẫn là trắng */
+        }
+
+        /* Hiệu ứng bấm nút (nhấn xuống nhẹ) */
+        .nav-btn:active {
+            transform: scale(0.98);
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Chọn Vai Trò Của Bạn</h1>
+
+    <div class="button-container">
+        <button class="nav-btn" onclick="window.location.href='Host.html'">
+            Tham gia với vai trò Host
+        </button>
+
+        <button class="nav-btn" onclick="window.location.href='Contestant.html'">
+            Tham gia với vai trò Contestant
+        </button>
+    </div>
+
+</body>
+
+</html>
