@@ -7,7 +7,6 @@
     <title>Host - Bảng điều khiển</title>
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <style>
-        /* Custom Scrollbar for Modal */
         .modal-body::-webkit-scrollbar {
             width: 8px;
         }
@@ -30,7 +29,7 @@
 
         body {
             background-color: #F3F4F6;
-            font-family: Arial, sans-serif;
+            font-family: Arial, Helvetica, sans-serif;
             padding: 1.5rem;
         }
 
@@ -95,7 +94,7 @@
             color: white;
             border-radius: 0.5rem;
             font-size: 1.5rem;
-            font-family: monospace;
+            font-family: Arial, Helvetica, sans-serif;
             text-align: center;
             flex: 1 1 0%;
             font-weight: bold;
@@ -355,26 +354,20 @@
             max-height: none;
         }
 
-        /* --- CSS MỚI CHO TIMER CỦA HOST --- */
+        /* --- CẬP NHẬT CSS TIMER: Luôn hiển thị --- */
         #hostTimerDisplay {
-            display: none;
-            /* Mặc định ẩn */
+            display: block;
+            /* Luôn hiển thị */
             width: 80%;
-            /* Căn chỉnh giống ô input bên dưới */
             margin: 0 auto 1rem auto;
-            /* Căn giữa và tạo khoảng cách */
             background-color: #FFFF00;
-            /* Màu vàng */
             color: #000000;
-            /* Chữ đen */
             font-weight: bold;
             font-size: 2rem;
-            /* Chữ to */
             padding: 0.75rem;
             border-radius: 0.5rem;
             text-align: center;
             border: 3px solid #000;
-            /* Viền đen */
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
     </style>
@@ -439,7 +432,6 @@
             </div>
         </div>
     </div>
-
     <div id="lockUsersModal" class="modal-overlay" style="display: none;">
         <div class="modal-content">
             <h2>Chọn người bị khóa chuông</h2>
@@ -451,7 +443,6 @@
             </div>
         </div>
     </div>
-
     <div id="bellOptionsModal" class="modal-overlay" style="display: none;">
         <div class="modal-content">
             <h2>Tùy chọn chuông</h2>
@@ -497,7 +488,6 @@
             </div>
         </div>
     </div>
-
     <div id="joinRoomModal" class="modal-overlay" style="display: none;">
         <div class="modal-content">
             <h2>Tham gia với tư cách Quản lý</h2>
@@ -519,11 +509,9 @@
     </div>
 
     <script>
-        // --- KHAI BÁO SOCKET.IO ---
         const SERVER_URL = 'https://buzz1.onrender.com';
         const socket = io(SERVER_URL);
 
-        // Biến toàn cục
         let userId = null;
         let currentRoomId = null;
         let currentRoomData = null;
@@ -531,12 +519,9 @@
         let currentParticipants = [];
         let isHost = false;
         let isManager = false;
-
-        // Biến Timer hiển thị
         let countdownInterval = null;
         const hostTimerDisplay = document.getElementById('hostTimerDisplay');
 
-        // --- SOCKET LISTENERS ---
         socket.on('connect', () => {
             userId = `host-${socket.id}`;
             document.getElementById('createRoomBtn').textContent = 'Tạo phòng';
@@ -549,13 +534,11 @@
             currentRoomId = data.roomId;
             isHost = true;
             isManager = false;
-
             document.getElementById('roomCodeDisplay').textContent = `Mã phòng: ${currentRoomId}`;
             document.getElementById('roomCodeDisplay').style.display = 'block';
             document.getElementById('createRoomBtn').textContent = `Mã phòng: ${currentRoomId}`;
             document.getElementById('createRoomBtn').disabled = true;
             document.getElementById('joinRoomBtn').style.display = 'none';
-
             enableButtons();
             updateBellUI("locked");
             document.getElementById('bellControlSection').style.display = 'block';
@@ -565,16 +548,13 @@
             currentRoomId = data.roomId;
             isHost = false;
             isManager = true;
-
             document.getElementById('roomCodeDisplay').textContent = `Mã phòng: ${currentRoomId}`;
             document.getElementById('roomCodeDisplay').style.display = 'block';
             document.getElementById('createRoomBtn').textContent = `Đã tham gia: ${currentRoomId}`;
             document.getElementById('createRoomBtn').disabled = true;
             document.getElementById('joinRoomBtn').style.display = 'none';
-
             enableButtons();
             document.getElementById('bellControlSection').style.display = 'block';
-
             if (data.roomState) {
                 handleRoomStateUpdate(data.roomState);
             } else {
@@ -584,83 +564,59 @@
         });
 
         socket.on('joinRoomError', (data) => { });
-
-        socket.on('roomClosed', (data) => {
-            window.location.reload();
-        });
-
+        socket.on('roomClosed', (data) => { window.location.reload(); });
         socket.on('roomStateUpdate', handleRoomStateUpdate);
 
         function handleRoomStateUpdate(data) {
             currentRoomData = data;
             currentParticipants = Array.isArray(data.participants) ? data.participants : [];
-
             const playerCount = currentParticipants.filter(p => !p.isHost && !p.isManager).length;
             document.getElementById('showParticipantsBtn').textContent = `Danh sách tham gia (${playerCount})`;
-
             updateBellUI(data.bellStatus);
             updateBellOptionsUI(data.options);
             renderBuzzTable(data.buzzes || [], data.bellOpenTimestamp);
 
-            // --- XỬ LÝ TIMER CHO HOST ---
-            // Nếu đang mở chuông giới hạn, có thời gian bắt đầu và có duration
             if (data.bellStatus === 'open_timed' && data.bellOpenTimestamp && data.bellDuration) {
                 startCountdown(data.bellDuration, data.bellOpenTimestamp);
             } else {
-                stopCountdown(); // Tắt nếu bị khóa hoặc mở vô hạn
+                stopCountdown();
             }
-
             const lockedFromServer = Array.isArray(data.lockedUsers) ? data.lockedUsers : null;
             updateLockedUsersUI(lockedFromServer);
         }
 
-        // --- HÀM QUẢN LÝ TIMER (LOCAL) ---
         function startCountdown(duration, startTime) {
             if (countdownInterval) clearInterval(countdownInterval);
-            hostTimerDisplay.style.display = 'block';
-
             const updateTimer = () => {
                 const now = Date.now();
-                // Tính thời gian đã trôi qua
                 const elapsed = (now - startTime) / 1000;
-                // Thời gian còn lại
                 const remaining = duration - elapsed;
-
                 if (remaining <= 0) {
                     hostTimerDisplay.textContent = "0.000s";
                     clearInterval(countdownInterval);
-                    // Host sẽ tự khóa bằng timeout trong openBell, hoặc server khóa.
                 } else {
                     hostTimerDisplay.textContent = remaining.toFixed(3) + "s";
                 }
             };
-            // Chạy ngay 1 lần
             updateTimer();
-            // Cập nhật mỗi 30ms
             countdownInterval = setInterval(updateTimer, 30);
         }
 
         function stopCountdown() {
             if (countdownInterval) clearInterval(countdownInterval);
-            hostTimerDisplay.style.display = 'none';
             hostTimerDisplay.textContent = "0.000s";
         }
 
-        // --- UTILS ---
         function enableButtons() {
             const isController = isHost || isManager;
             document.getElementById('showParticipantsBtn').disabled = false;
-
             document.getElementById('openBellInfiniteBtn').disabled = !isController;
             document.getElementById('openBellTimedBtn').disabled = !isController;
             document.getElementById('lockBellBtn').disabled = !isController;
             document.getElementById('resetBellBtn').disabled = !isController;
             document.getElementById('showLockUsersBtn').disabled = !isController;
             document.getElementById('showBellOptionsBtn').disabled = !isController;
-
-            if (!currentRoomId) {
-                document.getElementById('showParticipantsBtn').disabled = true;
-            }
+            if (!currentRoomId) document.getElementById('showParticipantsBtn').disabled = true;
         }
 
         function closeModal(modalId) { document.getElementById(modalId).style.display = 'none'; }
@@ -670,7 +626,6 @@
             const display = document.getElementById('bellStatusDisplay');
             display.style.backgroundColor = 'red';
             display.textContent = 'CHUÔNG ĐANG KHÓA';
-
             if (status === 'open_infinite') {
                 display.style.backgroundColor = 'blue';
                 display.textContent = 'CHUÔNG ĐANG MỞ (VÔ HẠN)';
@@ -697,10 +652,8 @@
                 tableBody.innerHTML = `<tr><td colspan="2">Chưa có ai bấm chuông</td></tr>`;
                 return;
             }
-
             const isMultipleBuzz = currentRoomData.options.buzzCount === 'multiple';
             let latestBuzzPerUser = new Map();
-
             if (isMultipleBuzz) {
                 buzzes.forEach(buzz => {
                     const buzzTime = buzz.time || 0;
@@ -710,7 +663,6 @@
                     }
                 });
             }
-
             tableBody.innerHTML = buzzes.map(buzz => {
                 const timeDiff = buzz.time !== undefined && buzz.time !== null ? buzz.time : 0;
                 let rowClass = "";
@@ -760,7 +712,6 @@
                 };
                 return getRoleScore(a) - getRoleScore(b);
             });
-
             document.getElementById('participantsList').innerHTML = sortedParticipants.map(p => {
                 let style = "font-weight: bold; font-size: 1.125rem; padding: 0.5rem;";
                 let roleClass = "";
@@ -775,7 +726,6 @@
             const listElement = document.getElementById('lockUsersList');
             const participants = Array.isArray(currentParticipants) ? currentParticipants : [];
             const contestants = participants.filter(p => !p.isHost && !p.isManager);
-
             if (contestants.length === 0) {
                 listElement.innerHTML = "<p>Chưa có người tham gia (Player) nào.</p>";
                 return;
@@ -801,7 +751,6 @@
             const listElement = document.getElementById('lockUsersList');
             const inputs = listElement ? listElement.querySelectorAll('input[type="checkbox"]') : [];
             if (!inputs || inputs.length === 0) renderLockUsersList();
-
             const finalInputs = document.querySelectorAll('#lockUsersList input[type="checkbox"]');
             finalInputs.forEach(cb => {
                 const v = cb.value || '';
@@ -846,22 +795,15 @@
 
         async function openBell(isTimed = false) {
             if (!currentRoomId || (!isHost && !isManager)) return;
-
             let status = "open_infinite";
             let payload = { reset: false };
-
             if (isTimed) {
                 status = "open_timed";
                 const duration = parseInt(document.getElementById('bellTimeInput').value) || 10;
                 if (bellTimer) clearTimeout(bellTimer);
-
-                // Timeout khóa chuông phía Host
                 bellTimer = setTimeout(() => { lockBell(); }, duration * 1000);
-
-                // QUAN TRỌNG: Gửi duration (tổng thời gian) lên server để Thí sinh có thể đếm ngược
                 payload.bellDuration = duration;
             }
-
             payload.bellStatus = status;
             await updateRoom(payload);
         }
@@ -876,9 +818,7 @@
             if (!currentRoomId || (!isHost && !isManager)) return;
             document.getElementById('buzzTableBody').innerHTML = `<tr><td style="width: 500px;" colspan="2">Đang reset chuông...</td></tr>`;
             let nextStatus = null;
-            if (currentRoomData && currentRoomData.bellStatus === 'open_infinite') {
-                nextStatus = 'open_infinite';
-            }
+            if (currentRoomData && currentRoomData.bellStatus === 'open_infinite') nextStatus = 'open_infinite';
             const payload = { reset: true };
             if (nextStatus === 'open_infinite') payload.bellStatus = 'open_infinite';
             await updateRoom(payload);
@@ -913,7 +853,6 @@
         document.getElementById('saveLockedUsersBtn').addEventListener('click', saveLockedUsers);
         document.getElementById('resetAllLocksBtn').addEventListener('click', resetAllLocks);
         document.getElementById('saveBellOptionsBtn').addEventListener('click', saveBellOptions);
-
         document.getElementById('createRoomBtn').disabled = true;
         document.getElementById('createRoomBtn').textContent = 'Đang kết nối Server...';
         document.getElementById('joinRoomBtn').disabled = true;

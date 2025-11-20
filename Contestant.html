@@ -151,7 +151,6 @@
 
         #buzzerBtn {
             width: 100%;
-            /* Mobile first */
             max-width: 500px;
             height: 100px;
             font-size: 1.875rem;
@@ -216,21 +215,22 @@
             color: #FFFFFF;
         }
 
-        /* --- CSS MỚI: Ô ĐẾM NGƯỢC THỜI GIAN --- */
+        /* --- CẬP NHẬT CSS TIMER: Luôn hiển thị --- */
         #timerDisplay {
-            display: none; /* Mặc định ẩn */
+            display: block;
+            /* Luôn hiển thị */
             width: 100%;
-            max-width: 500px; /* Bằng chiều rộng nút bấm */
-            background-color: #FFFF00; /* Màu vàng */
-            color: #000000; /* Chữ đen đậm */
+            max-width: 500px;
+            background-color: #FFFF00;
+            color: #000000;
             font-weight: bold;
-            font-size: 2.5rem; /* Chữ to rõ */
+            font-size: 2.5rem;
             padding: 0.5rem 0;
             border-radius: 0.5rem;
-            border: 3px solid #000; /* Viền đen */
+            border: 3px solid #000;
             text-align: center;
-            margin-bottom: 0.5rem; /* Cách nút bấm 1 chút */
-            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            margin-bottom: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
         }
     </style>
 </head>
@@ -270,22 +270,17 @@
     </div>
 
     <script>
-        // --- KHAI BÁO SOCKET.IO ---
         const SERVER_URL = 'https://buzz1.onrender.com';
         const socket = io(SERVER_URL);
 
-        // Biến toàn cục
         let userId = null;
         let currentRoomId = null;
         let username = null;
         let currentRoomData = null;
         let iHaveBuzzed = false;
         let myBuzzTime = null;
-        
-        // Biến Timer
         let countdownInterval = null;
 
-        // --- CÁC BIẾN DOM ---
         const loginSection = document.getElementById('loginSection');
         const buzzerSection = document.getElementById('buzzerSection');
         const buzzerBtn = document.getElementById('buzzerBtn');
@@ -293,7 +288,6 @@
         const errorMessage = document.getElementById('errorMessage');
         const timerDisplay = document.getElementById('timerDisplay');
 
-        // --- SOCKET LISTENERS ---
         socket.on('connect', () => {
             userId = `user-${socket.id}`;
             document.getElementById('joinRoomBtn').textContent = 'Xác nhận';
@@ -308,16 +302,12 @@
         socket.on('roomJoined', (data) => {
             currentRoomId = data.roomId;
             username = data.username;
-
             let resolvedId = null;
             if (data.userId) resolvedId = data.userId;
             else if (data.id) resolvedId = data.id;
             else if (data.socketId) resolvedId = data.socketId;
+            if (resolvedId) userId = String(resolvedId);
 
-            if (resolvedId) {
-                userId = String(resolvedId);
-            }
-            
             loginSection.style.display = 'none';
             buzzerSection.style.display = 'block';
             document.getElementById('roomCodeDisplay').textContent = currentRoomId;
@@ -337,14 +327,11 @@
         socket.on('roomStateUpdate', (data) => {
             const oldBellSessionId = currentRoomData ? currentRoomData.bellSessionId : null;
             currentRoomData = data;
-
             if (oldBellSessionId && oldBellSessionId !== currentRoomData.bellSessionId) {
                 iHaveBuzzed = false;
                 myBuzzTime = null;
             }
-
             const myBuzzInThisSession = currentRoomData.buzzes.find(b => b.userId === userId && b.bellSessionId === currentRoomData.bellSessionId);
-
             if (myBuzzInThisSession) {
                 iHaveBuzzed = true;
                 myBuzzTime = myBuzzInThisSession.time;
@@ -352,21 +339,13 @@
                 iHaveBuzzed = false;
                 myBuzzTime = null;
             }
-
             updateBuzzerUI();
         });
 
-
-        // --- XỬ LÝ THAM GIA PHÒNG ---
         function joinRoom() {
-            if (!userId) {
-                errorMessage.textContent = "Đang chờ kết nối server, vui lòng thử lại.";
-                return;
-            }
-
+            if (!userId) return;
             const roomId = document.getElementById('roomCodeInput').value;
             const inputUsername = document.getElementById('usernameInput').value.trim();
-
             if (!roomId || roomId.length !== 6) {
                 errorMessage.textContent = "Mã phòng phải là 6 chữ số.";
                 return;
@@ -375,73 +354,53 @@
                 errorMessage.textContent = "Vui lòng nhập Username.";
                 return;
             }
-
             errorMessage.textContent = "Đang tham gia phòng...";
             document.getElementById('joinRoomBtn').disabled = true;
-
             socket.emit('joinRoom', { roomId, username: inputUsername });
         }
 
-        // --- LOGIC ĐẾM NGƯỢC THỜI GIAN ---
         function startCountdown(duration, startTime) {
-            // Xóa timer cũ nếu có
             if (countdownInterval) clearInterval(countdownInterval);
-            
-            timerDisplay.style.display = 'block'; // Hiện ô vàng
-            
+
+            // timerDisplay đã luôn hiển thị rồi, không cần chỉnh style.display
             const updateTimer = () => {
                 const now = Date.now();
-                // Tính thời gian đã trôi qua
-                const elapsed = (now - startTime) / 1000; 
-                // Tính thời gian còn lại
+                const elapsed = (now - startTime) / 1000;
                 const remaining = duration - elapsed;
-
                 if (remaining <= 0) {
-                    timerDisplay.textContent = "Thời gian: 0.000s";
+                    timerDisplay.textContent = "0.000s";
                     clearInterval(countdownInterval);
-                    // Hết giờ -> nhưng việc khóa nút sẽ do Server gửi trạng thái locked
                 } else {
-                    timerDisplay.textContent = "Thời gian: " + remaining.toFixed(3) + "s";
+                    timerDisplay.textContent = remaining.toFixed(3) + "s";
                 }
             };
-
-            // Chạy ngay lập tức để hiển thị số
             updateTimer();
-            // Cập nhật liên tục mỗi 30ms
             countdownInterval = setInterval(updateTimer, 30);
         }
 
         function stopCountdown() {
             if (countdownInterval) clearInterval(countdownInterval);
-            timerDisplay.textContent = "Thời gian: 0.000s";
+            timerDisplay.textContent = "0.000s"; // Reset về 0
         }
 
-
-        // --- CẬP NHẬT GIAO DIỆN CHUÔNG ---
         function setBuzzerState(state, message) {
             buzzerBtn.disabled = true;
             buzzerBtn.className = "";
             buzzerStatus.className = "";
-
             if (state === 'active') {
                 buzzerBtn.disabled = false;
                 buzzerBtn.textContent = "BẤM CHUÔNG!";
                 buzzerBtn.classList.add('active');
-
                 buzzerStatus.textContent = "Sẵn sàng bấm!";
                 buzzerStatus.classList.add('status-active');
-
             } else if (state === 'buzzed') {
                 buzzerBtn.textContent = "Đã bấm";
                 buzzerBtn.classList.add('buzzed');
-
                 buzzerStatus.textContent = message;
                 buzzerStatus.classList.add('status-buzzed');
-
             } else if (state === 'locked') {
                 buzzerBtn.textContent = message;
                 buzzerBtn.classList.add('locked');
-
                 buzzerStatus.textContent = message;
                 buzzerStatus.classList.add('status-waiting');
             }
@@ -452,36 +411,26 @@
                 setBuzzerState("locked", "Đang tải...");
                 return;
             }
-
-            // --- XỬ LÝ KÍCH HOẠT TIMER ---
-            // Chỉ hiện khi chuông mở có giới hạn (open_timed) và dữ liệu thời gian hợp lệ
+            // Chỉ chạy đồng hồ khi là chế độ open_timed
             if (currentRoomData.bellStatus === 'open_timed' && currentRoomData.bellOpenTimestamp && currentRoomData.bellDuration) {
                 startCountdown(currentRoomData.bellDuration, currentRoomData.bellOpenTimestamp);
             } else {
-                stopCountdown(); // Tắt timer nếu chuông khóa hoặc mở vĩnh viễn
+                stopCountdown();
             }
-            // ---------------------------
 
-            // 1. Bị host khóa? 
             const lockedUsersList = currentRoomData.lockedUsers || [];
             const normalizedLockedList = lockedUsersList.map(item => String(item).trim());
             const normalizedUserId = String(userId).trim();
             const normalizedUsername = String(username).trim();
 
-            const isLockedByHost = normalizedLockedList.includes(normalizedUserId) || normalizedLockedList.includes(normalizedUsername);
-
-            if (isLockedByHost) {
+            if (normalizedLockedList.includes(normalizedUserId) || normalizedLockedList.includes(normalizedUsername)) {
                 setBuzzerState("locked", "Bạn đã bị Host khóa chuông");
                 return;
             }
-
-            // 2. Chuông đang khóa?
             if (currentRoomData.bellStatus === 'locked' || currentRoomData.bellStatus === 'locked_winner') {
                 setBuzzerState("locked", "Chuông đang khóa");
                 return;
             }
-
-            // 3. Đã bấm chuông?
             if (iHaveBuzzed && currentRoomData.options.buzzCount === 'single') {
                 const timeMessage = myBuzzTime !== null && myBuzzTime >= 0
                     ? `Đã bấm chuông: ${myBuzzTime.toFixed(3)}s`
@@ -489,24 +438,16 @@
                 setBuzzerState("buzzed", timeMessage);
                 return;
             }
-
-            // 4. Chuông đang mở
             if (currentRoomData.bellStatus.startsWith('open')) {
                 setBuzzerState("active", "BẤM CHUÔNG!");
                 return;
             }
-
             setBuzzerState("locked", "Đang chờ Host...");
         }
 
-        // --- XỬ LÝ BẤM CHUÔNG ---
         function handleBuzzerClick() {
-            if (!currentRoomData || !userId || buzzerBtn.disabled || !currentRoomData.bellSessionId) {
-                return;
-            }
-
+            if (!currentRoomData || !userId || buzzerBtn.disabled || !currentRoomData.bellSessionId) return;
             setBuzzerState("buzzed", "Đã bấm!");
-
             socket.emit('buzz', {
                 roomId: currentRoomId,
                 username: username,
@@ -515,19 +456,15 @@
             });
         }
 
-        // --- GẮN SỰ KIỆN ---
         document.getElementById('joinRoomBtn').addEventListener('click', joinRoom);
         buzzerBtn.addEventListener('click', handleBuzzerClick);
-
         document.addEventListener('keydown', (event) => {
             if (event.key === 'Control' && !event.repeat) {
                 if (buzzerSection.style.display === 'none') return;
                 handleBuzzerClick();
             }
         });
-
         setBuzzerState("locked", "Vui lòng chờ Host...");
-
     </script>
 </body>
 
