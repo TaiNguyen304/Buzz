@@ -7,7 +7,6 @@
     <title>Host - Bảng điều khiển</title>
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <style>
-        /* Custom Scrollbar for Modal */
         .modal-body::-webkit-scrollbar {
             width: 8px;
         }
@@ -359,7 +358,7 @@
             background-color: #FFFF00;
             color: #000000;
             font-weight: bold;
-            font-size: 2rem;
+            font-size: 1.5rem;
             padding: 0.75rem;
             border-radius: 0.5rem;
             text-align: center;
@@ -370,20 +369,16 @@
 </head>
 
 <body class="bg-gray-100 font-sans p-6">
-
     <div class="container">
         <h1>Bảng điều khiển Host</h1>
-
         <div class="flex-wrap">
             <button id="createRoomBtn" disabled>Đang kết nối Server...</button>
             <button id="joinRoomBtn" disabled>Đang kết nối...</button>
             <div id="roomCodeDisplay">Mã phòng: </div>
             <button id="showParticipantsBtn" disabled>Danh sách tham gia</button>
         </div>
-
         <div id="bellControlSection" style="display: none;">
             <div id="bellStatusDisplay">CHUÔNG ĐANG KHÓA</div>
-
             <div id="hostTimerDisplay">0.000s</div>
 
             <label for="bellTimeInput">Thời gian mở chuông (giây):</label>
@@ -394,13 +389,11 @@
                 <button id="openBellTimedBtn" disabled>Mở chuông (Giới hạn)</button>
                 <button id="lockBellBtn" disabled>Khóa chuông</button>
             </div>
-
             <div class="grid-container">
                 <button id="resetBellBtn" disabled>Reset chuông</button>
                 <button id="showLockUsersBtn" disabled>Chọn người bị khóa chuông</button>
                 <button id="showBellOptionsBtn" disabled>Tùy chọn chuông</button>
             </div>
-
             <div class="overflow-x-auto">
                 <table class="min-w-full">
                     <thead>
@@ -423,20 +416,17 @@
         <div class="modal-content">
             <h2>Danh sách người tham gia</h2>
             <div id="participantsList" class="modal-body"></div>
-            <div class="modal-actions-center">
-                <button onclick="closeModal('participantsModal')" class="modal-close-btn text-white">Đóng</button>
-            </div>
+            <div class="modal-actions-center"><button onclick="closeModal('participantsModal')"
+                    class="modal-close-btn text-white">Đóng</button></div>
         </div>
     </div>
     <div id="lockUsersModal" class="modal-overlay" style="display: none;">
         <div class="modal-content">
             <h2>Chọn người bị khóa chuông</h2>
             <div id="lockUsersList" class="modal-body space-y-2"></div>
-            <div class="mt-6 modal-actions">
-                <button id="saveLockedUsersBtn">Lưu</button>
-                <button id="resetAllLocksBtn">Reset tất cả</button>
-                <button onclick="closeModal('lockUsersModal')" class="modal-close-btn">Đóng</button>
-            </div>
+            <div class="mt-6 modal-actions"><button id="saveLockedUsersBtn">Lưu</button><button
+                    id="resetAllLocksBtn">Reset tất cả</button><button onclick="closeModal('lockUsersModal')"
+                    class="modal-close-btn">Đóng</button></div>
         </div>
     </div>
     <div id="bellOptionsModal" class="modal-overlay" style="display: none;">
@@ -446,61 +436,45 @@
                 <div>
                     <h3 class="font-bold text-lg mb-2">Số lần bấm chuông/vòng:</h3>
                     <div class="flex flex-col space-y-2">
-                        <div class="flex items-center">
-                            <input type="radio" id="opt-single-buzz" name="buzzCount" value="single" checked
-                                class="mr-3">
-                            <label for="opt-single-buzz" class="text-base text-gray-900">Mỗi người chỉ được bấm 1
-                                lần/vòng</label>
-                        </div>
-                        <div class="flex items-center">
-                            <input type="radio" id="opt-multiple-buzz" name="buzzCount" value="multiple" class="mr-3">
-                            <label for="opt-multiple-buzz" class="text-base text-gray-900">Mỗi người được bấm nhiều
-                                lần</label>
-                        </div>
+                        <div class="flex items-center"><input type="radio" id="opt-single-buzz" name="buzzCount"
+                                value="single" checked class="mr-3"><label for="opt-single-buzz"
+                                class="text-base text-gray-900">Mỗi người chỉ được bấm 1 lần/vòng</label></div>
+                        <div class="flex items-center"><input type="radio" id="opt-multiple-buzz" name="buzzCount"
+                                value="multiple" class="mr-3"><label for="opt-multiple-buzz"
+                                class="text-base text-gray-900">Mỗi người được bấm nhiều lần</label></div>
                     </div>
                 </div>
                 <div>
                     <h3 class="font-bold text-lg mb-2">Chế độ người thắng:</h3>
                     <div class="flex flex-col space-y-2">
                         <div class="flex flex-col space-y-2">
-                            <div class="flex items-center">
-                                <input type="radio" id="opt-single-winner" name="buzzMode" value="single-winner" checked
-                                    class="mr-3">
-                                <label for="opt-single-winner" class="text-base text-gray-900">Một người bấm: Khóa
-                                    chuông ngay lập tức</label>
+                            <div class="flex items-center"><input type="radio" id="opt-single-winner" name="buzzMode"
+                                    value="single-winner" checked class="mr-3"><label for="opt-single-winner"
+                                    class="text-base text-gray-900">Một người bấm: Khóa chuông ngay lập tức</label>
                             </div>
-                            <div class="flex items-center">
-                                <input type="radio" id="opt-all-buzz" name="buzzMode" value="all-buzz" class="mr-3">
-                                <label for="opt-all-buzz" class="text-base text-gray-900">Tất cả đều bấm: Chỉ khóa
-                                    chuông khi Host bấm Khóa</label>
-                            </div>
+                            <div class="flex items-center"><input type="radio" id="opt-all-buzz" name="buzzMode"
+                                    value="all-buzz" class="mr-3"><label for="opt-all-buzz"
+                                    class="text-base text-gray-900">Tất cả đều bấm: Chỉ khóa chuông khi Host bấm
+                                    Khóa</label></div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="modal-actions-center">
-                <button id="saveBellOptionsBtn">Lưu</button>
-                <button onclick="closeModal('bellOptionsModal')" class="modal-close-btn">Đóng</button>
-            </div>
+            <div class="modal-actions-center"><button id="saveBellOptionsBtn">Lưu</button><button
+                    onclick="closeModal('bellOptionsModal')" class="modal-close-btn">Đóng</button></div>
         </div>
     </div>
     <div id="joinRoomModal" class="modal-overlay" style="display: none;">
         <div class="modal-content">
             <h2>Tham gia với tư cách Quản lý</h2>
             <div class="modal-body">
-                <div>
-                    <label for="joinRoomCodeInput">Nhập mã phòng:</label>
-                    <input type="text" id="joinRoomCodeInput" class="modal-input">
-                </div>
-                <div>
-                    <label for="joinUsernameInput">Nhập Username:</label>
-                    <input type="text" id="joinUsernameInput" class="modal-input">
-                </div>
+                <div><label for="joinRoomCodeInput">Nhập mã phòng:</label><input type="text" id="joinRoomCodeInput"
+                        class="modal-input"></div>
+                <div><label for="joinUsernameInput">Nhập Username:</label><input type="text" id="joinUsernameInput"
+                        class="modal-input"></div>
             </div>
-            <div class="modal-actions-center">
-                <button id="confirmJoinBtn">Xác nhận</button>
-                <button id="closeJoinModalBtn" class="modal-close-btn">Đóng</button>
-            </div>
+            <div class="modal-actions-center"><button id="confirmJoinBtn">Xác nhận</button><button
+                    id="closeJoinModalBtn" class="modal-close-btn">Đóng</button></div>
         </div>
     </div>
 
@@ -520,351 +494,195 @@
 
         socket.on('connect', () => {
             userId = `host-${socket.id}`;
-            document.getElementById('createRoomBtn').textContent = 'Tạo phòng';
             document.getElementById('createRoomBtn').disabled = false;
-            document.getElementById('joinRoomBtn').textContent = 'Tham gia phòng (Quản lý)';
             document.getElementById('joinRoomBtn').disabled = false;
+            document.getElementById('createRoomBtn').textContent = 'Tạo phòng';
+            document.getElementById('joinRoomBtn').textContent = 'Tham gia phòng (Quản lý)';
         });
 
-        socket.on('roomCreated', (data) => {
-            currentRoomId = data.roomId;
-            isHost = true;
-            isManager = false;
-            document.getElementById('roomCodeDisplay').textContent = `Mã phòng: ${currentRoomId}`;
-            document.getElementById('roomCodeDisplay').style.display = 'block';
-            document.getElementById('createRoomBtn').textContent = `Mã phòng: ${currentRoomId}`;
-            document.getElementById('createRoomBtn').disabled = true;
-            document.getElementById('joinRoomBtn').style.display = 'none';
-            enableButtons();
-            updateBellUI("locked");
-            document.getElementById('bellControlSection').style.display = 'block';
-        });
-
-        socket.on('joinedAsManager', (data) => {
-            currentRoomId = data.roomId;
-            isHost = false;
-            isManager = true;
-            document.getElementById('roomCodeDisplay').textContent = `Mã phòng: ${currentRoomId}`;
-            document.getElementById('roomCodeDisplay').style.display = 'block';
-            document.getElementById('createRoomBtn').textContent = `Đã tham gia: ${currentRoomId}`;
-            document.getElementById('createRoomBtn').disabled = true;
-            document.getElementById('joinRoomBtn').style.display = 'none';
-            enableButtons();
-            document.getElementById('bellControlSection').style.display = 'block';
-            if (data.roomState) {
-                handleRoomStateUpdate(data.roomState);
-            } else {
-                updateBellUI("locked");
-            }
-            closeModal('joinRoomModal');
-        });
-
-        socket.on('joinRoomError', (data) => { });
-        socket.on('roomClosed', (data) => { window.location.reload(); });
+        socket.on('roomCreated', (data) => { setupRoom(data, true, false); });
+        socket.on('joinedAsManager', (data) => { setupRoom(data, false, true); closeModal('joinRoomModal'); });
+        socket.on('roomClosed', () => window.location.reload());
         socket.on('roomStateUpdate', handleRoomStateUpdate);
+
+        function setupRoom(data, host, manager) {
+            currentRoomId = data.roomId;
+            isHost = host;
+            isManager = manager;
+            document.getElementById('roomCodeDisplay').textContent = `Mã phòng: ${currentRoomId}`;
+            document.getElementById('roomCodeDisplay').style.display = 'block';
+            document.getElementById('createRoomBtn').textContent = isHost ? `Mã phòng: ${currentRoomId}` : `Đã tham gia: ${currentRoomId}`;
+            document.getElementById('createRoomBtn').disabled = true;
+            document.getElementById('joinRoomBtn').style.display = 'none';
+            enableButtons();
+            document.getElementById('bellControlSection').style.display = 'block';
+            if (data.roomState) handleRoomStateUpdate(data.roomState);
+            else updateBellUI("locked");
+        }
 
         function handleRoomStateUpdate(data) {
             currentRoomData = data;
             currentParticipants = Array.isArray(data.participants) ? data.participants : [];
-            const playerCount = currentParticipants.filter(p => !p.isHost && !p.isManager).length;
-            document.getElementById('showParticipantsBtn').textContent = `Danh sách tham gia (${playerCount})`;
+            document.getElementById('showParticipantsBtn').textContent = `Danh sách tham gia (${currentParticipants.filter(p => !p.isHost && !p.isManager).length})`;
             updateBellUI(data.bellStatus);
             updateBellOptionsUI(data.options);
-            renderBuzzTable(data.buzzes || [], data.bellOpenTimestamp);
+            renderBuzzTable(data.buzzes || []);
+            updateLockedUsersUI(data.lockedUsers || []);
 
-            // XỬ LÝ ĐẾM NGƯỢC
+            // --- XỬ LÝ ĐẾM NGƯỢC ---
             if (data.bellStatus === 'open_timed' && data.bellOpenTimestamp && data.bellDuration) {
                 startCountdown(data.bellDuration, data.bellOpenTimestamp);
-            } else {
+            } else if (data.bellStatus !== 'open_timed') {
                 stopCountdown();
             }
-
-            const lockedFromServer = Array.isArray(data.lockedUsers) ? data.lockedUsers : null;
-            updateLockedUsersUI(lockedFromServer);
         }
 
         function startCountdown(duration, startTime) {
             if (countdownInterval) clearInterval(countdownInterval);
+            // Chuyển startTime về số để tính toán chính xác
+            const start = Number(startTime);
 
             const updateTimer = () => {
                 const now = Date.now();
-                // Tính thời gian trôi qua dựa trên timestamp server gửi về
-                const elapsed = (now - Number(startTime)) / 1000;
+                const elapsed = (now - start) / 1000;
                 const remaining = duration - elapsed;
 
                 if (remaining <= 0) {
-                    hostTimerDisplay.textContent = "Thời gian: 0.000s";
+                    hostTimerDisplay.textContent = "0.000s";
                     clearInterval(countdownInterval);
                 } else {
-                    hostTimerDisplay.textContent = "Thời gian: " + remaining.toFixed(3) + "s";
+                    hostTimerDisplay.textContent = remaining.toFixed(3) + "s";
                 }
             };
-
             updateTimer();
-            countdownInterval = setInterval(updateTimer, 30);
+            countdownInterval = setInterval(updateTimer, 33); // Cập nhật ~30 lần/giây
         }
 
         function stopCountdown() {
             if (countdownInterval) clearInterval(countdownInterval);
-            hostTimerDisplay.textContent = "Thời gian: 0.000s";
+            hostTimerDisplay.textContent = "0.000s";
         }
 
-        function enableButtons() {
-            const isController = isHost || isManager;
-            document.getElementById('showParticipantsBtn').disabled = false;
-            document.getElementById('openBellInfiniteBtn').disabled = !isController;
-            document.getElementById('openBellTimedBtn').disabled = !isController;
-            document.getElementById('lockBellBtn').disabled = !isController;
-            document.getElementById('resetBellBtn').disabled = !isController;
-            document.getElementById('showLockUsersBtn').disabled = !isController;
-            document.getElementById('showBellOptionsBtn').disabled = !isController;
-            if (!currentRoomId) document.getElementById('showParticipantsBtn').disabled = true;
-        }
-
-        function closeModal(modalId) { document.getElementById(modalId).style.display = 'none'; }
-        function openModal(modalId) { document.getElementById(modalId).style.display = 'flex'; }
-
-        function updateBellUI(status) {
-            const display = document.getElementById('bellStatusDisplay');
-            display.style.backgroundColor = 'red';
-            display.textContent = 'CHUÔNG ĐANG KHÓA';
-            if (status === 'open_infinite') {
-                display.style.backgroundColor = 'blue';
-                display.textContent = 'CHUÔNG ĐANG MỞ (VÔ HẠN)';
-            } else if (status === 'open_timed') {
-                display.style.backgroundColor = 'green';
-                display.textContent = 'CHUÔNG ĐANG MỞ (CÓ GIỚI HẠN)';
-            } else if (status === 'locked_winner') {
-                display.style.backgroundColor = '#ff00cc';
-                display.textContent = 'ĐÃ CÓ NGƯỜI BẤM! (CHUÔNG ĐÃ KHÓA)';
-            }
-        }
-
-        function updateBellOptionsUI(options) {
-            if (!options) return;
-            document.getElementById('opt-single-buzz').checked = options.buzzCount === 'single';
-            document.getElementById('opt-multiple-buzz').checked = options.buzzCount === 'multiple';
-            document.getElementById('opt-single-winner').checked = options.buzzMode === 'single-winner';
-            document.getElementById('opt-all-buzz').checked = options.buzzMode === 'all-buzz';
-        }
-
-        function renderBuzzTable(buzzes, bellOpenTimestamp) {
-            const tableBody = document.getElementById('buzzTableBody');
-            if (buzzes.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="2">Chưa có ai bấm chuông</td></tr>`;
-                return;
-            }
-            const isMultipleBuzz = currentRoomData.options.buzzCount === 'multiple';
-            let latestBuzzPerUser = new Map();
-            if (isMultipleBuzz) {
-                buzzes.forEach(buzz => {
-                    const buzzTime = buzz.time || 0;
-                    const currentLatest = latestBuzzPerUser.get(buzz.username);
-                    if (currentLatest === undefined || buzzTime > (currentLatest.time || 0)) {
-                        latestBuzzPerUser.set(buzz.username, buzz);
-                    }
-                });
-            }
-            tableBody.innerHTML = buzzes.map(buzz => {
-                const timeDiff = buzz.time !== undefined && buzz.time !== null ? buzz.time : 0;
-                let rowClass = "";
-                if (isMultipleBuzz) {
-                    const latestBuzz = latestBuzzPerUser.get(buzz.username);
-                    if (latestBuzz && latestBuzz.userId === buzz.userId && (latestBuzz.time || 0) === timeDiff) {
-                        rowClass = "latest-buzz";
-                    }
-                }
-                return `<tr class="${rowClass}"><td style="width: 50%;">${buzz.username}</td><td style="width: 50%;">${timeDiff.toFixed(3)}s</td></tr>`;
-            }).join('');
-        }
-
-        function resolveUserIdFromParticipant(p) {
-            if (!p) return '';
-            if (p.userId) return String(p.userId);
-            if (p.id) return String(p.id);
-            if (p.socketId) return String(p.socketId);
-            if (p.userid) return String(p.userid);
-            try {
-                const roomParts = currentRoomData && currentRoomData.participants;
-                if (roomParts) {
-                    if (Array.isArray(roomParts)) {
-                        const found = roomParts.find(r => (r.username && p.username && r.username === p.username) || (r.id && p.id && r.id === p.id));
-                        if (found) return String(found.userId || found.id || found.socketId || '');
-                    } else {
-                        const vals = Object.values(roomParts);
-                        const found = vals.find(r => (r.username && p.username && r.username === p.username) || (r.id && p.id && r.id === p.id));
-                        if (found) return String(found.userId || found.id || found.socketId || '');
-                    }
-                }
-            } catch (e) { console.warn("resolveUserIdFromParticipant error", e); }
-            return '';
-        }
-
-        function renderParticipantsList() {
-            const participants = Array.isArray(currentParticipants) ? currentParticipants : [];
-            if (participants.length === 0) {
-                document.getElementById('participantsList').innerHTML = "<p>Chưa có ai tham gia.</p>";
-                return;
-            }
-            const sortedParticipants = [...participants].sort((a, b) => {
-                const getRoleScore = (p) => {
-                    if (p.isHost) return 1;
-                    if (p.isManager) return 2;
-                    return 3;
-                };
-                return getRoleScore(a) - getRoleScore(b);
-            });
-            document.getElementById('participantsList').innerHTML = sortedParticipants.map(p => {
-                let style = "font-weight: bold; font-size: 1.125rem; padding: 0.5rem;";
-                let roleClass = "";
-                if (p.isHost) { style += "color: #2563EB;"; roleClass = "text-blue-600"; }
-                else if (p.isManager) { style += "color: #DC2626;"; roleClass = "text-red-600"; }
-                else { style += "color: #000000;"; }
-                return `<p class="${roleClass}" style="${style}">${p.username}</p>`;
-            }).join('');
-        }
-
-        function renderLockUsersList() {
-            const listElement = document.getElementById('lockUsersList');
-            const participants = Array.isArray(currentParticipants) ? currentParticipants : [];
-            const contestants = participants.filter(p => !p.isHost && !p.isManager);
-            if (contestants.length === 0) {
-                listElement.innerHTML = "<p>Chưa có người tham gia (Player) nào.</p>";
-                return;
-            }
-            let lockedUsers = currentRoomData?.lockedUsers || [];
-            listElement.innerHTML = contestants.map(p => {
-                const contestantUserId = resolveUserIdFromParticipant(p) || '';
-                const valAttr = contestantUserId ? contestantUserId : `uname:${encodeURIComponent(p.username || '')}`;
-                let checked = false;
-                if (contestantUserId) { checked = lockedUsers.includes(contestantUserId) || lockedUsers.includes(String(contestantUserId)); }
-                if (!checked) {
-                    const uname = p.username || '';
-                    if (uname) { checked = lockedUsers.includes(uname) || lockedUsers.includes(String(uname)); }
-                }
-                return `<div style="display: flex; align-items: center;">
-                <input type="checkbox" id="lock-${valAttr}" value="${valAttr}" style="height: 1.25rem; width: 1.25rem; margin-right: 0.75rem;" ${checked ? 'checked' : ''}>
-                <label for="lock-${valAttr}" style="font-weight: bold; font-size: 1.125rem;">${p.username || ('#' + (p.id || 'unknown'))}</label>
-            </div>`;
-            }).join('');
-        }
-
-        function updateLockedUsersUI(lockedUsers) {
-            const listElement = document.getElementById('lockUsersList');
-            const inputs = listElement ? listElement.querySelectorAll('input[type="checkbox"]') : [];
-            if (!inputs || inputs.length === 0) renderLockUsersList();
-            const finalInputs = document.querySelectorAll('#lockUsersList input[type="checkbox"]');
-            finalInputs.forEach(cb => {
-                const v = cb.value || '';
-                if (v.startsWith('uname:')) {
-                    const uname = decodeURIComponent(v.slice(6));
-                    cb.checked = lockedUsers.includes(uname) || lockedUsers.includes(String(uname));
-                } else {
-                    cb.checked = lockedUsers.includes(v) || lockedUsers.includes(String(v));
-                }
-            });
-        }
-
-        async function saveLockedUsers() {
-            if (!currentRoomId || (!isHost && !isManager)) return;
-            const lockedUsers = [];
-            document.querySelectorAll('#lockUsersList input[type="checkbox"]:checked').forEach(cb => {
-                const v = cb.value || '';
-                if (!v) return;
-                if (v.startsWith('uname:')) lockedUsers.push(decodeURIComponent(v.slice(6)));
-                else lockedUsers.push(v);
-            });
-            await updateRoom({ lockedUsers: lockedUsers });
-            closeModal('lockUsersModal');
-        }
-
-        function createRoom() {
-            if (!userId) return;
-            socket.emit('createRoom');
-        }
-
-        function confirmJoinRoom() {
-            const roomId = document.getElementById('joinRoomCodeInput').value.trim();
-            const username = document.getElementById('joinUsernameInput').value.trim();
-            if (!roomId || !username || !userId) return;
-            socket.emit('joinRoomAsManager', { roomId: roomId, username: username, userId: userId });
-        }
-
-        async function updateRoom(data) {
-            if (!currentRoomId || (!isHost && !isManager)) return;
-            socket.emit('hostUpdateRoom', { roomId: currentRoomId, data: data });
-        }
-
-        // --- ĐÃ SỬA: Thêm bellOpenTimestamp vào payload ---
+        // --- HÀM QUAN TRỌNG: MỞ CHUÔNG ---
         async function openBell(isTimed = false) {
             if (!currentRoomId || (!isHost && !isManager)) return;
+
+            const durationVal = document.getElementById('bellTimeInput').value;
+            const duration = parseInt(durationVal) || 10; // Lấy giá trị từ textbox
+
             let status = "open_infinite";
             let payload = { reset: false };
 
             if (isTimed) {
                 status = "open_timed";
-                const duration = parseInt(document.getElementById('bellTimeInput').value) || 10;
+                const startTime = Date.now();
+
+                // Hiển thị ngay lập tức cho Host (Optimistic UI)
+                startCountdown(duration, startTime);
+
+                // Gửi dữ liệu lên server
+                payload.bellDuration = duration;
+                payload.bellOpenTimestamp = startTime;
+
                 if (bellTimer) clearTimeout(bellTimer);
                 bellTimer = setTimeout(() => { lockBell(); }, duration * 1000);
-
-                // QUAN TRỌNG: Gửi thời gian bắt đầu (timestamp) để các máy khác tính toán
-                payload.bellDuration = duration;
-                payload.bellOpenTimestamp = Date.now();
+            } else {
+                stopCountdown();
             }
 
             payload.bellStatus = status;
             await updateRoom(payload);
         }
 
-        async function lockBell() {
-            if (!currentRoomId || (!isHost && !isManager)) return;
+        async function updateRoom(data) {
+            socket.emit('hostUpdateRoom', { roomId: currentRoomId, data: data });
+        }
+
+        // --- CÁC HÀM KHÁC (GIỮ NGUYÊN) ---
+        function enableButtons() {
+            const isController = isHost || isManager;
+            const buttons = ['openBellInfiniteBtn', 'openBellTimedBtn', 'lockBellBtn', 'resetBellBtn', 'showLockUsersBtn', 'showBellOptionsBtn'];
+            buttons.forEach(id => document.getElementById(id).disabled = !isController);
+            document.getElementById('showParticipantsBtn').disabled = false;
+        }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+
+        function updateBellUI(status) {
+            const d = document.getElementById('bellStatusDisplay');
+            d.style.backgroundColor = status === 'open_infinite' ? 'blue' : (status === 'open_timed' ? 'green' : (status === 'locked_winner' ? '#ff00cc' : 'red'));
+            d.textContent = status === 'open_infinite' ? 'CHUÔNG ĐANG MỞ (VÔ HẠN)' : (status === 'open_timed' ? 'CHUÔNG ĐANG MỞ (CÓ GIỚI HẠN)' : (status === 'locked_winner' ? 'ĐÃ CÓ NGƯỜI BẤM!' : 'CHUÔNG ĐANG KHÓA'));
+        }
+        function updateBellOptionsUI(opt) {
+            if (!opt) return;
+            document.getElementById('opt-single-buzz').checked = opt.buzzCount === 'single';
+            document.getElementById('opt-multiple-buzz').checked = opt.buzzCount === 'multiple';
+            document.getElementById('opt-single-winner').checked = opt.buzzMode === 'single-winner';
+            document.getElementById('opt-all-buzz').checked = opt.buzzMode === 'all-buzz';
+        }
+        function renderBuzzTable(buzzes) {
+            const tbody = document.getElementById('buzzTableBody');
+            if (!buzzes.length) { tbody.innerHTML = `<tr><td colspan="2">Chưa có ai bấm chuông</td></tr>`; return; }
+            const isMulti = currentRoomData?.options?.buzzCount === 'multiple';
+            const latestMap = new Map();
+            if (isMulti) buzzes.forEach(b => { if (!latestMap.has(b.username) || b.time > latestMap.get(b.username).time) latestMap.set(b.username, b); });
+
+            tbody.innerHTML = buzzes.map(b => {
+                const isLatest = isMulti && latestMap.get(b.username).userId === b.userId && latestMap.get(b.username).time === b.time;
+                return `<tr class="${isLatest ? 'latest-buzz' : ''}"><td style="width: 50%;">${b.username}</td><td style="width: 50%;">${(b.time || 0).toFixed(3)}s</td></tr>`;
+            }).join('');
+        }
+
+        // Lock User Logic
+        function resolveUserId(p) { return String(p.userId || p.id || p.socketId || p.userid || ''); }
+        function renderLockList() {
+            const contestants = currentParticipants.filter(p => !p.isHost && !p.isManager);
+            const div = document.getElementById('lockUsersList');
+            if (!contestants.length) { div.innerHTML = "<p>Chưa có người tham gia.</p>"; return; }
+            const locked = currentRoomData?.lockedUsers || [];
+            div.innerHTML = contestants.map(p => {
+                const uid = resolveUserId(p);
+                const val = uid || `uname:${encodeURIComponent(p.username)}`;
+                const isLocked = locked.includes(val) || (p.username && locked.includes(p.username));
+                return `<div style="display:flex;align-items:center;"><input type="checkbox" value="${val}" style="height:1.25rem;width:1.25rem;margin-right:0.75rem;" ${isLocked ? 'checked' : ''}><label>${p.username}</label></div>`;
+            }).join('');
+        }
+        function updateLockedUsersUI(locked) { if (!document.querySelector('#lockUsersList input')) renderLockList(); }
+
+        // Button Events
+        document.getElementById('createRoomBtn').onclick = () => { if (userId) socket.emit('createRoom'); };
+        document.getElementById('joinRoomBtn').onclick = () => openModal('joinRoomModal');
+        document.getElementById('closeJoinModalBtn').onclick = () => closeModal('joinRoomModal');
+        document.getElementById('confirmJoinBtn').onclick = () => {
+            const r = document.getElementById('joinRoomCodeInput').value.trim();
+            const u = document.getElementById('joinUsernameInput').value.trim();
+            if (r && u && userId) socket.emit('joinRoomAsManager', { roomId: r, username: u, userId });
+        };
+        document.getElementById('showParticipantsBtn').onclick = () => {
+            const pList = currentParticipants;
+            document.getElementById('participantsList').innerHTML = pList.length ? pList.map(p => `<p style="font-weight:bold;padding:0.5rem;color:${p.isHost ? 'blue' : (p.isManager ? 'red' : 'black')}">${p.username}</p>`).join('') : "<p>Chưa có ai.</p>";
+            openModal('participantsModal');
+        };
+        document.getElementById('showLockUsersBtn').onclick = () => { renderLockList(); openModal('lockUsersModal'); };
+        document.getElementById('saveLockedUsersBtn').onclick = async () => {
+            const l = []; document.querySelectorAll('#lockUsersList input:checked').forEach(c => l.push(c.value.startsWith('uname:') ? decodeURIComponent(c.value.slice(6)) : c.value));
+            await updateRoom({ lockedUsers: l }); closeModal('lockUsersModal');
+        };
+        document.getElementById('resetAllLocksBtn').onclick = async () => { await updateRoom({ lockedUsers: [] }); renderLockList(); };
+        document.getElementById('showBellOptionsBtn').onclick = () => { updateBellOptionsUI(currentRoomData.options); openModal('bellOptionsModal'); };
+        document.getElementById('saveBellOptionsBtn').onclick = async () => {
+            const bc = document.querySelector('input[name="buzzCount"]:checked').value;
+            const bm = document.querySelector('input[name="buzzMode"]:checked').value;
+            await updateRoom({ options: { buzzCount: bc, buzzMode: bm } }); closeModal('bellOptionsModal');
+        };
+        document.getElementById('openBellInfiniteBtn').onclick = () => openBell(false);
+        document.getElementById('openBellTimedBtn').onclick = () => openBell(true);
+        document.getElementById('lockBellBtn').onclick = async () => { if (bellTimer) clearTimeout(bellTimer); await updateRoom({ bellStatus: "locked" }); };
+        document.getElementById('resetBellBtn').onclick = async () => {
+            document.getElementById('buzzTableBody').innerHTML = `<tr><td colspan="2">Đang reset...</td></tr>`;
+            await updateRoom({ reset: true, bellStatus: currentRoomData?.bellStatus === 'open_infinite' ? 'open_infinite' : undefined });
             if (bellTimer) clearTimeout(bellTimer);
-            await updateRoom({ bellStatus: "locked" });
-        }
-
-        async function resetBell() {
-            if (!currentRoomId || (!isHost && !isManager)) return;
-            document.getElementById('buzzTableBody').innerHTML = `<tr><td style="width: 500px;" colspan="2">Đang reset chuông...</td></tr>`;
-            let nextStatus = null;
-            if (currentRoomData && currentRoomData.bellStatus === 'open_infinite') nextStatus = 'open_infinite';
-            const payload = { reset: true };
-            if (nextStatus === 'open_infinite') payload.bellStatus = 'open_infinite';
-            await updateRoom(payload);
-            if (bellTimer) clearTimeout(bellTimer);
-        }
-
-        async function resetAllLocks() {
-            if (!currentRoomId || (!isHost && !isManager)) return;
-            await updateRoom({ lockedUsers: [] });
-            renderLockUsersList();
-        }
-
-        async function saveBellOptions() {
-            if (!currentRoomId || (!isHost && !isManager)) return;
-            const buzzCount = document.querySelector('input[name="buzzCount"]:checked').value;
-            const buzzMode = document.querySelector('input[name="buzzMode"]:checked').value;
-            await updateRoom({ options: { buzzCount, buzzMode } });
-            closeModal('bellOptionsModal');
-        }
-
-        document.getElementById('createRoomBtn').addEventListener('click', createRoom);
-        document.getElementById('joinRoomBtn').addEventListener('click', () => { openModal('joinRoomModal'); });
-        document.getElementById('closeJoinModalBtn').addEventListener('click', () => { closeModal('joinRoomModal'); });
-        document.getElementById('confirmJoinBtn').addEventListener('click', confirmJoinRoom);
-        document.getElementById('showParticipantsBtn').addEventListener('click', () => { renderParticipantsList(); openModal('participantsModal'); });
-        document.getElementById('showLockUsersBtn').addEventListener('click', () => { renderLockUsersList(); openModal('lockUsersModal'); });
-        document.getElementById('showBellOptionsBtn').addEventListener('click', () => { updateBellOptionsUI(currentRoomData.options); openModal('bellOptionsModal'); });
-        document.getElementById('openBellInfiniteBtn').addEventListener('click', () => openBell(false));
-        document.getElementById('openBellTimedBtn').addEventListener('click', () => openBell(true));
-        document.getElementById('lockBellBtn').addEventListener('click', lockBell);
-        document.getElementById('resetBellBtn').addEventListener('click', resetBell);
-        document.getElementById('saveLockedUsersBtn').addEventListener('click', saveLockedUsers);
-        document.getElementById('resetAllLocksBtn').addEventListener('click', resetAllLocks);
-        document.getElementById('saveBellOptionsBtn').addEventListener('click', saveBellOptions);
-        document.getElementById('createRoomBtn').disabled = true;
-        document.getElementById('createRoomBtn').textContent = 'Đang kết nối Server...';
-        document.getElementById('joinRoomBtn').disabled = true;
-        document.getElementById('joinRoomBtn').textContent = 'Đang kết nối...';
+        };
     </script>
 </body>
 
