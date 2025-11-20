@@ -7,64 +7,94 @@
     <title>Host - Bảng điều khiển</title>
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <style>
+        /* Custom Scrollbar for Modal */
         .modal-body::-webkit-scrollbar {
             width: 8px;
         }
 
         .modal-body::-webkit-scrollbar-thumb {
             background-color: #9CA3AF;
+            /* Gray-400 */
             border-radius: 9999px;
         }
 
         .modal-body::-webkit-scrollbar-track {
             background-color: #F3F4F6;
+            /* Gray-100 */
         }
 
+        /* Căn giữa nút trong Modal */
         .modal-actions-center {
             margin-top: 1.5rem;
             display: flex;
             justify-content: center;
+            /* Center horizontally */
             gap: 1rem;
         }
 
+        /* Global Styles */
         body {
             background-color: #F3F4F6;
             font-family: Arial, Helvetica, sans-serif;
+            /* font-sans */
             padding: 1.5rem;
+            /* p-6 */
         }
 
         .container {
             max-width: 48rem;
+            /* max-w-4xl */
             margin-left: auto;
+            /* mx-auto */
             margin-right: auto;
+            /* mx-auto */
             background-color: #FFFFFF;
+            /* bg-white */
             padding: 2rem;
+            /* p-8 */
             border-radius: 1rem;
+            /* rounded-2xl */
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            /* shadow-lg */
         }
 
         h1 {
             font-size: 1.875rem;
+            /* text-3xl */
             font-weight: bold;
+            /* font-bold */
             margin-bottom: 1.5rem;
+            /* mb-6 */
             text-align: center;
+            /* text-center */
             color: blue;
+            /* text-blue-600 */
         }
 
+        /* Button & Input Styles */
         .flex-wrap {
             display: flex;
             flex-wrap: wrap;
             gap: 1rem;
+            /* gap-4 */
             margin-bottom: 1.5rem;
+            /* mb-6 */
         }
 
         button {
             padding: 0.5rem 1rem;
+            /* px-4 py-2 */
             border-radius: 0.5rem;
+            /* rounded-lg */
             font-weight: bold;
+            /* font-bold */
+            transition-property: color, background-color, box-shadow, transform;
+            /* transition-colors, duration-200 */
             transition-duration: 200ms;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+            /* shadow-md */
             flex: 1 1 0%;
+            /* flex-1 */
             cursor: pointer;
             border: none;
             height: 50px !important;
@@ -74,87 +104,125 @@
         button:hover {
             background-color: orange !important;
             color: #FFFFFF !important;
+            /* hover:text-white */
         }
 
         #createRoomBtn,
         #showParticipantsBtn {
             background-color: purple;
+            /* bg-purple-600 */
             color: #FFFFFF;
+            /* text-white */
         }
 
+        /* NÚT MỚI: THAM GIA PHÒNG */
         #joinRoomBtn {
             background-color: purple;
             color: #FFFFFF;
         }
 
-        /* Font Arial cho Mã phòng */
         #roomCodeDisplay {
             display: none;
+            /* Mặc định ẩn, JS sẽ hiện */
             padding: 0.75rem;
+            /* p-3 */
             background-color: purple;
             color: white;
             border-radius: 0.5rem;
+            /* rounded-lg */
             font-size: 1.5rem;
-            font-family: Arial, Helvetica, sans-serif !important;
+            /* text-2xl */
+            font-family: Arial, Helvetica, sans-serif, monospace;
+            /* font-mono */
             text-align: center;
+            /* text-center */
             flex: 1 1 0%;
+            /* flex-1 */
             font-weight: bold;
         }
 
         #bellStatusDisplay {
             width: 80%;
+            /* w-full */
             margin: auto;
             text-align: center;
+            /* text-center */
             padding: 0.75rem;
+            /* p-3 */
             border-radius: 0.5rem;
+            /* rounded-lg */
             font-weight: bold;
+            /* font-bold */
             color: #FFFFFF;
+            /* text-white */
             font-size: 1.25rem;
+            /* text-xl */
             margin-bottom: 1rem;
+            /* mb-4 */
             background-color: red;
+            /* Mặc định ĐANG KHÓA */
         }
 
         label {
             display: block;
             font-size: 0.875rem;
+            /* text-sm */
             font-weight: bold;
+            /* font-medium */
             color: red;
+            /* text-gray-700 */
             margin-bottom: 0.25rem;
+            /* mb-1 */
             text-align: center;
+            /* ĐÃ THÊM: Căn giữa văn bản label */
         }
 
         input[type="number"] {
             width: 80%;
+            /* ĐÃ SỬA: Giảm chiều rộng để căn giữa */
             display: block;
+            /* ĐÃ THÊM: Để margin auto hoạt động */
             margin-left: auto;
+            /* ĐÃ THÊM: Căn giữa */
             margin-right: auto;
+            /* ĐÃ THÊM: Căn giữa */
             padding: 0.5rem;
+            /* p-2 */
             border: 1px solid red;
+            /* border border-gray-300 */
             border-radius: 0.5rem;
+            /* rounded-lg */
             box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            /* shadow-sm */
             font-weight: bold;
         }
 
+        /* CSS cho Input Text trong Modal */
         input[type="text"].modal-input {
             width: 100%;
             padding: 0.5rem;
             border: 1px solid #D1D5DB;
+            /* border-gray-300 */
             border-radius: 0.5rem;
             box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
             font-weight: bold;
             box-sizing: border-box;
+            /* <<< FIX LỖI CHIỀU RỘNG */
         }
 
         input[type="text"].modal-input:focus {
             outline: 2px solid transparent;
+            outline-offset: 2px;
             border-color: purple;
             box-shadow: 0 0 0 3px purple;
         }
 
         input[type="number"]:focus {
             outline: 2px solid transparent;
+            outline-offset: 2px;
             border-color: red;
             box-shadow: 0 0 0 3px red;
+            /* ring-blue-500 */
             font-weight: bold;
         }
 
@@ -162,35 +230,46 @@
             display: grid;
             grid-template-columns: repeat(1, minmax(0, 1fr));
             gap: 1rem;
+            /* gap-4 */
             margin-bottom: 1.5rem;
+            /* mb-6 */
         }
 
         @media (min-width: 768px) {
             .grid-container {
                 grid-template-columns: repeat(3, minmax(0, 1fr));
+                /* md:grid-cols-3 */
             }
         }
 
         #openBellInfiniteBtn,
         #resetBellBtn {
             background-color: blue;
+            /* bg-blue-600 */
             color: #FFFFFF;
+            /* text-white */
         }
 
         #openBellTimedBtn,
         #showLockUsersBtn {
             background-color: green;
+            /* bg-green-600 */
             color: #FFFFFF;
+            /* text-white */
         }
 
         #lockBellBtn,
         #showBellOptionsBtn {
             background-color: #ff00cc;
+            /* bg-[#ff00cc] */
             color: #FFFFFF;
+            /* text-white */
         }
 
+        /* Table Styles */
         .overflow-x-auto {
             width: 100%;
+            /* w-full */
             overflow-x: auto;
         }
 
@@ -200,31 +279,47 @@
 
         table {
             border-collapse: collapse;
+            /* border-collapse */
             border: 1px solid #D1D5DB;
+            /* border border-gray-300 */
         }
 
         thead th {
             padding: 1rem;
+            /* p-4 */
             background-color: rgb(255, 255, 0);
+            /* bg-[rgb(255,255,0)] */
             color: #000000;
+            /* text-black */
             font-weight: bold;
+            /* font-bold */
             font-size: 1.125rem;
+            /* text-lg */
             border: 1px solid #D1D5DB;
+            /* border border-gray-300 */
         }
 
         tbody {
             text-align: center;
+            /* text-center */
             font-size: 1.125rem;
+            /* text-lg */
             font-weight: bold;
+            /* font-bold */
         }
 
         tbody td {
             padding: 0.75rem;
+            /* p-3 */
             border: 1px solid #D1D5DB;
+            /* border border-gray-300 */
             background-color: #FFFFFF;
+            /* bg-white */
             color: #000000;
+            /* text-black */
         }
 
+        /* CSS cho tính năng Bổ sung (Tô màu lượt bấm muộn nhất) */
         .latest-buzz {
             background-color: blue !important;
             color: white !important;
@@ -236,6 +331,12 @@
             font-weight: bold;
         }
 
+        /* CSS MỚI: Màu chữ cho Quản lý trong danh sách */
+        .text-red-600 {
+            color: #DC2626;
+        }
+
+        /* Modal Styles */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -243,9 +344,12 @@
             bottom: 0;
             left: 0;
             background-color: rgba(0, 0, 0, 0.5);
+            /* bg-black bg-opacity-50 */
             display: flex;
             align-items: center;
+            /* items-center */
             justify-content: center;
+            /* justify-center */
             z-index: 50;
             transition-property: opacity;
             transition-duration: 300ms;
@@ -253,44 +357,63 @@
 
         .modal-content {
             background-color: #FFFFFF;
+            /* bg-white */
             padding: 1.5rem;
+            /* p-6 */
             border-radius: 0.75rem;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            /* rounded-xl */
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            /* shadow-2xl */
             max-width: 32rem;
+            /* max-w-lg */
             width: 100%;
+            /* w-full */
             max-height: 80vh;
             overflow-y: auto;
         }
 
         .modal-content h2 {
             font-size: 1.5rem;
+            /* text-2xl */
             font-weight: bold;
+            /* font-bold */
             margin-bottom: 1rem;
+            /* mb-4 */
         }
 
         .modal-body {
             max-height: 16rem;
+            /* max-h-64 */
             overflow-y: auto;
             padding-right: 0.5rem;
+            /* pr-2 */
         }
 
         .modal-close-btn {
             background-color: rgb(255, 0, 0);
+            /* bg-[rgb(255,0,0)] */
             color: #FFFFFF;
+            /* text-white */
         }
 
+        /* Lock Users Modal Specifics */
         #lockUsersModal .modal-actions {
             display: flex;
             justify-content: flex-end;
+            /* justify-end */
             gap: 1rem;
+            /* gap-4 */
             margin-top: 1.5rem;
         }
 
         #saveLockedUsersBtn {
             background-color: green;
+            /* bg-green-600 */
             color: #FFFFFF;
+            /* text-white */
         }
 
+        /* CSS MỚI: Nút Xác nhận (Join Room) */
         #confirmJoinBtn {
             background-color: green;
             color: white;
@@ -299,102 +422,111 @@
 
         #resetAllLocksBtn {
             background-color: rgb(255, 255, 0);
+            /* bg-[rgb(255,255,0)] */
             color: #000000;
+            /* text-black */
         }
 
         #lockUsersList>div {
             display: flex;
             align-items: center;
             margin-bottom: 0.5rem;
+            /* space-y-2 */
         }
 
         #lockUsersList input[type="checkbox"] {
             height: 1.25rem;
+            /* h-5 */
             width: 1.25rem;
+            /* w-5 */
             color: green;
+            /* text-green-600 */
         }
 
         #lockUsersList label {
             text-align: left;
+            /* text-left */
             display: inline;
             color: #111827;
+            /* text-gray-900 */
             font-weight: normal;
+            /* font-normal */
             font-size: 1rem;
+            /* text-base */
             margin: 0;
             padding: 0;
             cursor: pointer;
         }
 
+        /* Style cho nút Lưu trong Tùy chọn chuông */
         #saveBellOptionsBtn {
             background-color: green;
+            /* Màu nền xanh lá */
             color: #FFFFFF;
+            /* Chữ trắng */
             font-weight: bold;
+            /* Chữ đậm */
         }
 
+        /* Fix: Căn chỉnh ô tích và chữ trong Tùy chọn chuông */
         #bellOptionsModal .flex.items-center label {
             display: inline;
             margin-bottom: 0;
             text-align: left;
         }
 
+        /* CSS MỚI: Label trong Modal Tham gia phòng */
         #joinRoomModal label {
             text-align: left;
             color: #111827;
+            /* gray-900 */
             margin-bottom: 0.5rem;
             font-size: 1rem;
+            /* text-base */
         }
 
+        /* CSS MỚI: Khoảng cách trong Modal Tham gia phòng */
         #joinRoomModal .modal-body {
             display: flex;
             flex-direction: column;
             gap: 1rem;
+            /* space-y-4 */
             max-height: none;
-        }
-
-        #hostTimerDisplay {
-            display: block;
-            width: 80%;
-            height: 50px;
-            margin: 0 auto 1rem auto;
-            background-color: #FFFF00;
-            color: #000000;
-            font-weight: bold;
-            font-size: 1.5rem;
-            padding: 0.75rem;
-            border-radius: 0.5rem;
-            text-align: center !important;
-            justify-content: center !important;
-            align-items: center !important;
-            border: 3px solid #000;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            /* Bỏ giới hạn chiều cao cho modal đơn giản này */
         }
     </style>
 </head>
 
 <body class="bg-gray-100 font-sans p-6">
+
     <div class="container">
         <h1>Bảng điều khiển Host</h1>
+
         <div class="flex-wrap">
             <button id="createRoomBtn" disabled>Đang kết nối Server...</button>
             <button id="joinRoomBtn" disabled>Đang kết nối...</button>
             <div id="roomCodeDisplay">Mã phòng: </div>
             <button id="showParticipantsBtn" disabled>Danh sách tham gia</button>
         </div>
+
         <div id="bellControlSection" style="display: none;">
             <div id="bellStatusDisplay">CHUÔNG ĐANG KHÓA</div>
-            <div id="hostTimerDisplay">Thời gian: 0.000s</div>
+
             <label for="bellTimeInput">Thời gian mở chuông (giây):</label>
             <input type="number" id="bellTimeInput" value="10">
+
             <div class="grid-container">
                 <button id="openBellInfiniteBtn" disabled>Mở chuông vĩnh viễn</button>
                 <button id="openBellTimedBtn" disabled>Mở chuông (Giới hạn)</button>
                 <button id="lockBellBtn" disabled>Khóa chuông</button>
             </div>
+
             <div class="grid-container">
                 <button id="resetBellBtn" disabled>Reset chuông</button>
                 <button id="showLockUsersBtn" disabled>Chọn người bị khóa chuông</button>
                 <button id="showBellOptionsBtn" disabled>Tùy chọn chuông</button>
             </div>
+
             <div class="overflow-x-auto">
                 <table class="min-w-full">
                     <thead>
@@ -416,20 +548,27 @@
     <div id="participantsModal" class="modal-overlay" style="display: none;">
         <div class="modal-content">
             <h2>Danh sách người tham gia</h2>
-            <div id="participantsList" class="modal-body"></div>
-            <div class="modal-actions-center"><button onclick="closeModal('participantsModal')"
-                    class="modal-close-btn text-white">Đóng</button></div>
+            <div id="participantsList" class="modal-body">
+            </div>
+            <div class="modal-actions-center">
+                <button onclick="closeModal('participantsModal')" class="modal-close-btn text-white">Đóng</button>
+            </div>
         </div>
     </div>
+
     <div id="lockUsersModal" class="modal-overlay" style="display: none;">
         <div class="modal-content">
             <h2>Chọn người bị khóa chuông</h2>
-            <div id="lockUsersList" class="modal-body space-y-2"></div>
-            <div class="mt-6 modal-actions"><button id="saveLockedUsersBtn">Lưu</button><button
-                    id="resetAllLocksBtn">Reset tất cả</button><button onclick="closeModal('lockUsersModal')"
-                    class="modal-close-btn">Đóng</button></div>
+            <div id="lockUsersList" class="modal-body space-y-2">
+            </div>
+            <div class="mt-6 modal-actions">
+                <button id="saveLockedUsersBtn">Lưu</button>
+                <button id="resetAllLocksBtn">Reset tất cả</button>
+                <button onclick="closeModal('lockUsersModal')" class="modal-close-btn">Đóng</button>
+            </div>
         </div>
     </div>
+
     <div id="bellOptionsModal" class="modal-overlay" style="display: none;">
         <div class="modal-content">
             <h2>Tùy chọn chuông</h2>
@@ -437,205 +576,608 @@
                 <div>
                     <h3 class="font-bold text-lg mb-2">Số lần bấm chuông/vòng:</h3>
                     <div class="flex flex-col space-y-2">
-                        <div class="flex items-center"><input type="radio" id="opt-single-buzz" name="buzzCount"
-                                value="single" checked class="mr-3"><label for="opt-single-buzz"
-                                class="text-base text-gray-900">Mỗi người chỉ được bấm 1 lần/vòng</label></div>
-                        <div class="flex items-center"><input type="radio" id="opt-multiple-buzz" name="buzzCount"
-                                value="multiple" class="mr-3"><label for="opt-multiple-buzz"
-                                class="text-base text-gray-900">Mỗi người được bấm nhiều lần</label></div>
+                        <div class="flex items-center">
+                            <input type="radio" id="opt-single-buzz" name="buzzCount" value="single" checked
+                                class="mr-3">
+                            <label for="opt-single-buzz" class="text-base text-gray-900">Mỗi người chỉ được bấm 1
+                                lần/vòng</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="radio" id="opt-multiple-buzz" name="buzzCount" value="multiple" class="mr-3">
+                            <label for="opt-multiple-buzz" class="text-base text-gray-900">Mỗi người được bấm nhiều
+                                lần</label>
+                        </div>
                     </div>
                 </div>
                 <div>
                     <h3 class="font-bold text-lg mb-2">Chế độ người thắng:</h3>
                     <div class="flex flex-col space-y-2">
                         <div class="flex flex-col space-y-2">
-                            <div class="flex items-center"><input type="radio" id="opt-single-winner" name="buzzMode"
-                                    value="single-winner" checked class="mr-3"><label for="opt-single-winner"
-                                    class="text-base text-gray-900">Một người bấm: Khóa chuông ngay lập tức</label>
+                            <div class="flex items-center">
+                                <input type="radio" id="opt-single-winner" name="buzzMode" value="single-winner" checked
+                                    class="mr-3">
+                                <label for="opt-single-winner" class="text-base text-gray-900">Một người bấm: Khóa chuông
+                                    ngay lập tức</label>
                             </div>
-                            <div class="flex items-center"><input type="radio" id="opt-all-buzz" name="buzzMode"
-                                    value="all-buzz" class="mr-3"><label for="opt-all-buzz"
-                                    class="text-base text-gray-900">Tất cả đều bấm: Chỉ khóa chuông khi Host bấm
-                                    Khóa</label></div>
+                            <div class="flex items-center">
+                                <input type="radio" id="opt-all-buzz" name="buzzMode" value="all-buzz" class="mr-3">
+                                <label for="opt-all-buzz" class="text-base text-gray-900">Tất cả đều bấm: Chỉ khóa chuông
+                                    khi Host bấm Khóa</label>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="modal-actions-center"><button id="saveBellOptionsBtn">Lưu</button><button
-                    onclick="closeModal('bellOptionsModal')" class="modal-close-btn">Đóng</button></div>
+            <div class="modal-actions-center">
+                <button id="saveBellOptionsBtn">Lưu</button>
+                <button onclick="closeModal('bellOptionsModal')" class="modal-close-btn">Đóng</button>
+            </div>
         </div>
     </div>
+
     <div id="joinRoomModal" class="modal-overlay" style="display: none;">
         <div class="modal-content">
             <h2>Tham gia với tư cách Quản lý</h2>
             <div class="modal-body">
-                <div><label for="joinRoomCodeInput">Nhập mã phòng:</label><input type="text" id="joinRoomCodeInput"
-                        class="modal-input"></div>
-                <div><label for="joinUsernameInput">Nhập Username:</label><input type="text" id="joinUsernameInput"
-                        class="modal-input"></div>
+                <div>
+                    <label for="joinRoomCodeInput">Nhập mã phòng:</label>
+                    <input type="text" id="joinRoomCodeInput" class="modal-input">
+                </div>
+                <div>
+                    <label for="joinUsernameInput">Nhập Username:</label>
+                    <input type="text" id="joinUsernameInput" class="modal-input">
+                </div>
             </div>
-            <div class="modal-actions-center"><button id="confirmJoinBtn">Xác nhận</button><button
-                    id="closeJoinModalBtn" class="modal-close-btn">Đóng</button></div>
+            <div class="modal-actions-center">
+                <button id="confirmJoinBtn">Xác nhận</button>
+                <button id="closeJoinModalBtn" class="modal-close-btn">Đóng</button>
+            </div>
         </div>
     </div>
-
     <script>
+        // --- KHAI BÁO SOCKET.IO ---
+        // Đã đặt về localhost cho kiểm thử cục bộ
         const SERVER_URL = 'https://buzz1.onrender.com';
         const socket = io(SERVER_URL);
-        let userId = null, currentRoomId = null, currentRoomData = null, bellTimer = null, currentParticipants = [];
-        let isHost = false, isManager = false, countdownInterval = null;
-        const hostTimerDisplay = document.getElementById('hostTimerDisplay');
 
+        // Biến toàn cục
+        let userId = null;
+        let currentRoomId = null;
+        let currentRoomData = null;
+        let bellTimer = null;
+        let currentParticipants = [];
+        let isHost = false;
+        let isManager = false;
+
+        // --- SOCKET LISTENERS ---
         socket.on('connect', () => {
-            userId = `host-${socket.id}`;
-            document.getElementById('createRoomBtn').disabled = false;
-            document.getElementById('joinRoomBtn').disabled = false;
+            userId = `host-${socket.id}`; // Host có userId riêng
             document.getElementById('createRoomBtn').textContent = 'Tạo phòng';
+            document.getElementById('createRoomBtn').disabled = false;
+            // Kích hoạt nút Tham gia phòng
             document.getElementById('joinRoomBtn').textContent = 'Tham gia phòng (Quản lý)';
+            document.getElementById('joinRoomBtn').disabled = false;
+            console.log("Connected to server. Host ID:", userId);
         });
-        socket.on('roomCreated', (data) => { setupRoom(data, true, false); });
-        socket.on('joinedAsManager', (data) => { setupRoom(data, false, true); closeModal('joinRoomModal'); });
-        socket.on('roomClosed', () => window.location.reload());
-        socket.on('roomStateUpdate', handleRoomStateUpdate);
 
-        function setupRoom(data, host, manager) {
-            currentRoomId = data.roomId; isHost = host; isManager = manager;
+        socket.on('roomCreated', (data) => {
+            currentRoomId = data.roomId;
+            isHost = true;
+            isManager = false;
+
             document.getElementById('roomCodeDisplay').textContent = `Mã phòng: ${currentRoomId}`;
             document.getElementById('roomCodeDisplay').style.display = 'block';
-            document.getElementById('createRoomBtn').textContent = isHost ? `Mã phòng: ${currentRoomId}` : `Đã tham gia: ${currentRoomId}`;
+            document.getElementById('createRoomBtn').textContent = `Mã phòng: ${currentRoomId}`;
+
+            // Ẩn/vô hiệu hóa nút tạo/tham gia khi đã ở trong phòng
             document.getElementById('createRoomBtn').disabled = true;
             document.getElementById('joinRoomBtn').style.display = 'none';
+
+            // Kích hoạt các nút và hiện khu vực điều khiển
+            enableButtons();
+            updateBellUI("locked");
+            document.getElementById('bellControlSection').style.display = 'block';
+
+            console.log("Tạo phòng thành công:", currentRoomId);
+        });
+
+        // BẮT SỰ KIỆN KHI THAM GIA (QUẢN LÝ) THÀNH CÔNG
+        socket.on('joinedAsManager', (data) => {
+            currentRoomId = data.roomId;
+            isHost = false;
+            isManager = true;
+
+            document.getElementById('roomCodeDisplay').textContent = `Mã phòng: ${currentRoomId}`;
+            document.getElementById('roomCodeDisplay').style.display = 'block';
+            document.getElementById('createRoomBtn').textContent = `Đã tham gia: ${currentRoomId}`;
+
+            // Ẩn/vô hiệu hóa nút tạo/tham gia
+            document.getElementById('createRoomBtn').disabled = true;
+            document.getElementById('joinRoomBtn').style.display = 'none';
+
+            // Kích hoạt các nút và hiện khu vực điều khiển
             enableButtons();
             document.getElementById('bellControlSection').style.display = 'block';
-            if (data.roomState) handleRoomStateUpdate(data.roomState); else updateBellUI("locked");
-        }
+
+            // Cập nhật trạng thái phòng ngay lập tức
+            if (data.roomState) {
+                handleRoomStateUpdate(data.roomState);
+            } else {
+                updateBellUI("locked"); // Mặc định
+            }
+
+            closeModal('joinRoomModal');
+            console.log("Tham gia phòng (Quản lý) thành công:", currentRoomId);
+        });
+
+        // BẮT SỰ KIỆN LỖI KHI THAM GIA
+        socket.on('joinRoomError', (data) => {
+        });
+
+        socket.on('roomClosed', (data) => {
+            window.location.reload();
+        });
+
+        // --- REFACTOR: TÁCH HÀM XỬ LÝ STATE RIÊNG ---
+        socket.on('roomStateUpdate', handleRoomStateUpdate);
 
         function handleRoomStateUpdate(data) {
             currentRoomData = data;
-            currentParticipants = Array.isArray(data.participants) ? data.participants : [];
-            document.getElementById('showParticipantsBtn').textContent = `Danh sách tham gia (${currentParticipants.filter(p => !p.isHost && !p.isManager).length})`;
+
+            // <<< FIX LỖI: Đảm bảo data.participants là Array trước khi gán
+            // Server đã gửi về Array (participantsArray), nhưng ta cần đảm bảo kiểu dữ liệu hợp lệ
+            // Nếu data.participants không phải Array, gán mảng rỗng []
+            currentParticipants = Array.isArray(data.participants) ? data.participants : []; 
+
+            // Đếm số lượng Player (không phải Host/Manager)
+            // Lỗi TypeError: currentParticipants.filter is not a function đã được sửa
+            const playerCount = currentParticipants.filter(p => !p.isHost && !p.isManager).length;
+            document.getElementById('showParticipantsBtn').textContent = `Danh sách tham gia (${playerCount})`;
+
+            // Cập nhật giao diện phòng
             updateBellUI(data.bellStatus);
             updateBellOptionsUI(data.options);
-            renderBuzzTable(data.buzzes || []);
-            updateLockedUsersUI(data.lockedUsers || []);
+            renderBuzzTable(data.buzzes || [], data.bellOpenTimestamp);
 
-            // XỬ LÝ ĐẾM NGƯỢC VÀ KHÓA KHI HẾT GIỜ
-            if (data.bellStatus === 'open_timed' &&
-                data.bellOpenTimestamp &&
-                data.bellDuration) {
+            // Nếu server gửi lockedUsers, đồng bộ checkbox ngay lập tức.
+            const lockedFromServer = Array.isArray(data.lockedUsers) ? data.lockedUsers : null;
+            updateLockedUsersUI(lockedFromServer);
+        }
 
-                if (!window._lastBellSessionId ||
-                    window._lastBellSessionId !== data.bellSessionId) {
+        // --- UTILS ---
+        function enableButtons() {
+            // Logic mới kiểm tra cả Host và Manager
+            const isController = isHost || isManager; 
 
-                    window._lastBellSessionId = data.bellSessionId;
-                    startCountdown(data.bellDuration, data.bellOpenTimestamp);
-                }
-            }
-            else {
-                stopCountdown();
+            // Kích hoạt tất cả các nút điều khiển
+            document.getElementById('showParticipantsBtn').disabled = false; // Luôn hiển thị
+            
+            document.getElementById('openBellInfiniteBtn').disabled = !isController;
+            document.getElementById('openBellTimedBtn').disabled = !isController;
+            document.getElementById('lockBellBtn').disabled = !isController;
+            document.getElementById('resetBellBtn').disabled = !isController;
+            document.getElementById('showLockUsersBtn').disabled = !isController;
+            document.getElementById('showBellOptionsBtn').disabled = !isController;
+            
+            // Nút "Danh sách tham gia" luôn hoạt động khi đã join phòng.
+            if (!currentRoomId) {
+                document.getElementById('showParticipantsBtn').disabled = true;
             }
         }
 
-        function startCountdown(duration, startTime) {
-            if (countdownInterval) clearInterval(countdownInterval);
-            const start = Number(startTime);
-            const updateTimer = () => {
-                const now = Date.now();
-                const elapsed = (now - start) / 1000;
-                const remaining = duration - elapsed;
-                if (remaining <= 0) {
-                    hostTimerDisplay.textContent = "Thời gian: 0.000s";
-                    clearInterval(countdownInterval);
-                    // Khi hết giờ, Host gửi lệnh khóa nếu chưa khóa
-                    if (currentRoomData.bellStatus === 'open_timed' && (isHost || isManager)) {
-                        lockBell();
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'flex';
+        }
+
+        function updateBellUI(status) {
+            const display = document.getElementById('bellStatusDisplay');
+            display.style.backgroundColor = 'red';
+            display.textContent = 'CHUÔNG ĐANG KHÓA';
+
+            if (status === 'open_infinite') {
+                display.style.backgroundColor = 'blue'; // Dùng màu xanh dương cho infinite (ví dụ)
+                display.textContent = 'CHUÔNG ĐANG MỞ (VÔ HẠN)';
+            } else if (status === 'open_timed') {
+                display.style.backgroundColor = 'green';
+                display.textContent = 'CHUÔNG ĐANG MỞ (CÓ GIỚI HẠN)';
+            } else if (status === 'locked_winner') {
+                display.style.backgroundColor = '#ff00cc';
+                display.textContent = 'ĐÃ CÓ NGƯỜI THẮNG! (CHUÔNG ĐÃ KHÓA)';
+            }
+        }
+
+        function updateBellOptionsUI(options) {
+            if (!options) return;
+            document.getElementById('opt-single-buzz').checked = options.buzzCount === 'single';
+            document.getElementById('opt-multiple-buzz').checked = options.buzzCount === 'multiple';
+
+            document.getElementById('opt-single-winner').checked = options.buzzMode === 'single-winner';
+            document.getElementById('opt-all-buzz').checked = options.buzzMode === 'all-buzz';
+        }
+
+        function renderBuzzTable(buzzes, bellOpenTimestamp) {
+            const tableBody = document.getElementById('buzzTableBody');
+            if (buzzes.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="2">Chưa có ai bấm chuông</td></tr>`;
+                return;
+            }
+
+            const isMultipleBuzz = currentRoomData.options.buzzCount === 'multiple';
+            let latestBuzzPerUser = new Map(); // Lưu trữ lượt bấm muộn nhất của mỗi người
+
+            if (isMultipleBuzz) {
+                // Nhóm theo username và tìm lượt bấm lớn nhất (muộn nhất)
+                buzzes.forEach(buzz => {
+                    // Lấy thời gian hiện tại của buzz, nếu là null/undefined thì coi là 0 để so sánh
+                    const buzzTime = buzz.time || 0;
+                    const currentLatest = latestBuzzPerUser.get(buzz.username);
+
+                    if (currentLatest === undefined || buzzTime > (currentLatest.time || 0)) {
+                        latestBuzzPerUser.set(buzz.username, buzz);
                     }
-                } else {
-                    hostTimerDisplay.textContent = "Thời gian: " + remaining.toFixed(3) + "s";
+                });
+            }
+
+            tableBody.innerHTML = buzzes.map(buzz => {
+                const timeDiff = buzz.time !== undefined && buzz.time !== null ? buzz.time : 0; // Đảm bảo timeDiff là số
+
+                let rowClass = "";
+                // Kiểm tra xem đây có phải là lượt bấm muộn nhất của người này trong chế độ multiple buzz hay không
+                if (isMultipleBuzz) {
+                    const latestBuzz = latestBuzzPerUser.get(buzz.username);
+                    // So sánh bằng userId và time để đảm bảo chỉ highlight 1 lần bấm chuông duy nhất
+                    if (latestBuzz && latestBuzz.userId === buzz.userId && (latestBuzz.time || 0) === timeDiff) {
+                        rowClass = "latest-buzz";
+                    }
                 }
-            };
-            updateTimer();
-            countdownInterval = setInterval(updateTimer, 33);
+
+                return `
+                <tr class="${rowClass}">
+                    <td style="width: 50%;">${buzz.username}</td>
+                    <td style="width: 50%;">${timeDiff.toFixed(3)}s</td>
+                </tr>
+            `;
+            }).join('');
         }
 
-        function stopCountdown() { if (countdownInterval) clearInterval(countdownInterval); hostTimerDisplay.textContent = "Thời gian: 0.000s"; }
+        // --- Helper: tìm userId từ participant object (linh hoạt nhiều cấu trúc) ---
+        function resolveUserIdFromParticipant(p) {
+            if (!p) return '';
+            // thử các trường hay gặp
+            if (p.userId) return String(p.userId);
+            if (p.id) return String(p.id);
+            if (p.socketId) return String(p.socketId);
+            if (p.userid) return String(p.userid);
 
-        async function openBell(isTimed = false) {
+            // nếu currentRoomData.participants tồn tại, dò dựa trên username
+            try {
+                const roomParts = currentRoomData && currentRoomData.participants;
+                if (roomParts) {
+                    // Nếu là array
+                    if (Array.isArray(roomParts)) {
+                        const found = roomParts.find(r => (r.username && p.username && r.username === p.username) || (r.id && p.id && r.id === p.id));
+                        if (found) return String(found.userId || found.id || found.socketId || '');
+                    } else {
+                        // Nếu là object map
+                        const vals = Object.values(roomParts);
+                        const found = vals.find(r => (r.username && p.username && r.username === p.username) || (r.id && p.id && r.id === p.id));
+                        if (found) return String(found.userId || found.id || found.socketId || '');
+                    }
+                }
+            } catch (e) {
+                console.warn("resolveUserIdFromParticipant error", e);
+            }
+
+            // fallback: không tìm thấy id -> trả rỗng
+            return '';
+        }
+
+        // --- Render danh sách người tham gia (đã sửa lỗi potential null/undefined access) ---
+        function renderParticipantsList() {
+            // FIX: Đảm bảo currentParticipants là một mảng
+            const participants = Array.isArray(currentParticipants) ? currentParticipants : [];
+
+            if (participants.length === 0) {
+                document.getElementById('participantsList').innerHTML = "<p>Chưa có ai tham gia.</p>";
+                return;
+            }
+
+            // --- LOGIC SẮP XẾP MỚI ---
+            const sortedParticipants = [...participants].sort((a, b) => {
+                const getRoleScore = (p) => {
+                    if (p.isHost) return 1; // Host trên cùng
+                    if (p.isManager) return 2; // Manager ở giữa
+                    return 3; // Player cuối cùng
+                };
+
+                const scoreA = getRoleScore(a);
+                const scoreB = getRoleScore(b);
+
+                if (scoreA !== scoreB) {
+                    return scoreA - scoreB; // Sắp xếp theo điểm vai trò
+                }
+
+                // Nếu cùng vai trò, giữ nguyên thứ tự (hoặc sắp xếp theo tên/thời gian nếu muốn)
+                return 0;
+            });
+            // --- HẾT LOGIC SẮP XẾP ---
+
+            document.getElementById('participantsList').innerHTML = sortedParticipants.map(p => {
+                let style = "font-weight: bold; font-size: 1.125rem; padding: 0.5rem;";
+                let roleClass = "";
+
+                if (p.isHost) {
+                    style += "color: #2563EB;"; // Xanh dương
+                    roleClass = "text-blue-600";
+                } else if (p.isManager) {
+                    style += "color: #DC2626;"; // Màu đỏ (Tailwind red-600)
+                    roleClass = "text-red-600";
+                } else {
+                    style += "color: #000000;"; // Màu đen (Player)
+                }
+
+                return `<p class="${roleClass}" 
+                           style="${style}">
+                           ${p.username}
+                        </p>`;
+            }).join('');
+        }
+
+        // --- Render danh sách checkbox chọn người bị khóa (linh hoạt) ---
+        function renderLockUsersList() {
+            const listElement = document.getElementById('lockUsersList');
+            // FIX: Đảm bảo currentParticipants là một mảng
+            const participants = Array.isArray(currentParticipants) ? currentParticipants : [];
+
+            const contestants = participants.filter(p => !p.isHost && !p.isManager); // CHỈ HIỂN THỊ PLAYER
+
+            if (contestants.length === 0) {
+                listElement.innerHTML = "<p>Chưa có người tham gia (Player) nào.</p>";
+                return;
+            }
+
+            // Lấy danh sách lockedUsers ưu tiên từ currentRoomData
+            let lockedUsers = currentRoomData?.lockedUsers || [];
+
+            // tạo HTML
+            listElement.innerHTML = contestants.map(p => {
+                const contestantUserId = resolveUserIdFromParticipant(p) || ''; // có thể rỗng
+                // nếu không có userId thì dùng data-username làm fallback
+                const valAttr = contestantUserId ? contestantUserId : `uname:${encodeURIComponent(p.username || '')}`;
+
+                // quyết định checked: so sánh linh hoạt (userId hoặc username)
+                let checked = false;
+                if (contestantUserId) {
+                    checked = lockedUsers.includes(contestantUserId) || lockedUsers.includes(String(contestantUserId));
+                }
+                // nếu chưa checked, thử username fallback
+                if (!checked) {
+                    const uname = p.username || '';
+                    if (uname) {
+                        checked = lockedUsers.includes(uname) || lockedUsers.includes(String(uname));
+                    }
+                }
+
+                return `
+            <div style="display: flex; align-items: center;">
+                <input type="checkbox" 
+                       id="lock-${valAttr}" 
+                       value="${valAttr}"
+                       style="height: 1.25rem; width: 1.25rem; margin-right: 0.75rem;"
+                       ${checked ? 'checked' : ''}>
+                <label for="lock-${valAttr}" style="font-weight: bold; font-size: 1.125rem;">
+                    ${p.username || ('#' + (p.id || 'unknown'))}
+                </label>
+            </div>
+        `;
+            }).join('');
+        }
+
+        // --- Khi server cập nhật lockedUsers, đồng bộ checkbox (nếu cần, render lại trước) ---
+        function updateLockedUsersUI(lockedUsers) {
+            // nếu list chưa render hoặc rỗng thì (re)render trước
+            const listElement = document.getElementById('lockUsersList');
+            const inputs = listElement ? listElement.querySelectorAll('input[type="checkbox"]') : [];
+            if (!inputs || inputs.length === 0) {
+                // render lại để có checkbox DOM
+                renderLockUsersList();
+            }
+
+            // Sau đó set checked dựa trên lockedUsers (so sánh linh hoạt)
+            const finalInputs = document.querySelectorAll('#lockUsersList input[type="checkbox"]');
+            finalInputs.forEach(cb => {
+                const v = cb.value || '';
+                if (v.startsWith('uname:')) {
+                    // fallback: so sánh bằng username nếu server gửi username trong lockedUsers (ít khả năng)
+                    const uname = decodeURIComponent(v.slice(6));
+                    cb.checked = lockedUsers.includes(uname) || lockedUsers.includes(String(uname));
+                } else {
+                    // bình thường v là userId
+                    cb.checked = lockedUsers.includes(v) || lockedUsers.includes(String(v));
+                }
+            });
+        }
+
+        // --- Save: đọc checkbox và gửi lên server (có log debug) ---
+        async function saveLockedUsers() {
+            // Thêm kiểm tra quyền truy cập
             if (!currentRoomId || (!isHost && !isManager)) return;
 
-            // [FIX] Đảm bảo chỉ đọc giá trị số nguyên từ input
-            const durationInput = document.getElementById('bellTimeInput');
-            const duration = parseInt(durationInput.value) || 10;
+            const lockedUsers = [];
+            document.querySelectorAll('#lockUsersList input[type="checkbox"]:checked').forEach(cb => {
+                const v = cb.value || '';
+                if (!v) return;
+                if (v.startsWith('uname:')) {
+                    // nếu chỉ có username (fallback), gửi username — server nên xử lý mapping
+                    lockedUsers.push(decodeURIComponent(v.slice(6)));
+                } else {
+                    lockedUsers.push(v);
+                }
+            });
 
-            let status = isTimed ? "open_timed" : "open_infinite";
+            console.log("Host/Manager -> saveLockedUsers, sending lockedUsers:", lockedUsers);
+            await updateRoom({ lockedUsers: lockedUsers });
+            closeModal('lockUsersModal');
+        }
 
-            // Payload chỉ gửi duration (đã được sửa lỗi +5s)
-            let payload = {
-                bellStatus: status,
-                reset: false,
-                bellDuration: isTimed ? duration : null
-            };
+        // --- SOCKET EMITTERS (HÀM GỬI LỆNH) ---
+        function createRoom() {
+            if (!userId) return;
+            socket.emit('createRoom');
+        }
 
-            // Bỏ chạy countdown ngay lập tức (optimistic) trên Host
-            // Đồng hồ sẽ bắt đầu chạy khi nhận được roomStateUpdate từ Server (đảm bảo đồng bộ)
-            await updateRoom(payload);
+        // HÀM MỚI: XÁC NHẬN THAM GIA PHÒNG (QUẢN LÝ)
+        function confirmJoinRoom() {
+            const roomId = document.getElementById('joinRoomCodeInput').value.trim();
+            const username = document.getElementById('joinUsernameInput').value.trim();
+
+            if (!roomId || !username) {
+                return;
+            }
+
+            if (!userId) {
+                return;
+            }
+
+            console.log(`Host (ID: ${userId}) joining room ${roomId} as Manager ${username}`);
+            // Gửi sự kiện mới
+            socket.emit('joinRoomAsManager', {
+                roomId: roomId,
+                username: username,
+                userId: userId // Gửi ID của host để server biết ai đang tham gia
+            });
+        }
+
+
+        async function updateRoom(data) {
+            // Thêm kiểm tra quyền truy cập cho updateRoom
+            if (!currentRoomId || (!isHost && !isManager)) return;
+            
+            socket.emit('hostUpdateRoom', { roomId: currentRoomId, data: data });
+        }
+
+        // --- QUẢN LÝ CHUÔNG ---
+        async function openBell(isTimed = false) {
+            // Thêm kiểm tra quyền truy cập
+            if (!currentRoomId || (!isHost && !isManager)) return;
+
+            let status = "open_infinite";
+            if (isTimed) {
+                status = "open_timed";
+                const duration = parseInt(document.getElementById('bellTimeInput').value) || 10;
+                if (bellTimer) clearTimeout(bellTimer);
+
+                bellTimer = setTimeout(() => {
+                    lockBell();
+                }, duration * 1000);
+            }
+            // Gửi trạng thái mới, không reset. Server phải thiết lập bellOpenTimestamp
+            await updateRoom({ bellStatus: status, reset: false });
         }
 
         async function lockBell() {
+            // Thêm kiểm tra quyền truy cập
             if (!currentRoomId || (!isHost && !isManager)) return;
+
             if (bellTimer) clearTimeout(bellTimer);
-            await updateRoom({ bellStatus: "locked" });
+            await updateRoom({ bellStatus: "locked" }); // Chỉ cập nhật trạng thái
         }
 
-        async function updateRoom(data) { socket.emit('hostUpdateRoom', { roomId: currentRoomId, data: data }); }
+        async function resetBell() {
+            // Thêm kiểm tra quyền truy cập
+            if (!currentRoomId || (!isHost && !isManager)) return;
 
-        // Các hàm tiện ích khác (giữ nguyên)
-        function enableButtons() {
-            const isController = isHost || isManager;
-            const ids = ['openBellInfiniteBtn', 'openBellTimedBtn', 'lockBellBtn', 'resetBellBtn', 'showLockUsersBtn', 'showBellOptionsBtn'];
-            ids.forEach(id => document.getElementById(id).disabled = !isController);
-            document.getElementById('showParticipantsBtn').disabled = false;
-        }
-        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-        function updateBellUI(status) {
-            const d = document.getElementById('bellStatusDisplay');
-            d.style.backgroundColor = status === 'open_infinite' ? 'blue' : (status === 'open_timed' ? 'green' : (status === 'locked_winner' ? '#ff00cc' : 'red'));
-            d.textContent = status === 'open_infinite' ? 'CHUÔNG ĐANG MỞ (VÔ HẠN)' : (status === 'open_timed' ? 'CHUÔNG ĐANG MỞ (CÓ GIỚI HẠN)' : (status === 'locked_winner' ? 'ĐÃ CÓ NGƯỜI BẤM!' : 'CHUÔNG ĐANG KHÓA'));
-        }
-        function updateBellOptionsUI(opt) { if (opt) { document.getElementById('opt-single-buzz').checked = opt.buzzCount === 'single'; document.getElementById('opt-multiple-buzz').checked = opt.buzzCount === 'multiple'; document.getElementById('opt-single-winner').checked = opt.buzzMode === 'single-winner'; document.getElementById('opt-all-buzz').checked = opt.buzzMode === 'all-buzz'; } }
-        function renderBuzzTable(buzzes) {
-            const tbody = document.getElementById('buzzTableBody');
-            if (!buzzes.length) { tbody.innerHTML = `<tr><td colspan="2">Chưa có ai bấm chuông</td></tr>`; return; }
-            const isMulti = currentRoomData?.options?.buzzCount === 'multiple';
-            const latestMap = new Map();
-            if (isMulti) buzzes.forEach(b => { if (!latestMap.has(b.username) || b.time > latestMap.get(b.username).time) latestMap.set(b.username, b); });
-            tbody.innerHTML = buzzes.map(b => { const isLatest = isMulti && latestMap.get(b.username).userId === b.userId && latestMap.get(b.username).time === b.time; return `<tr class="${isLatest ? 'latest-buzz' : ''}"><td style="width:50%;">${b.username}</td><td style="width:50%;">${(b.time || 0).toFixed(3)}s</td></tr>`; }).join('');
-        }
-        function resolveUserId(p) { return String(p.userId || p.id || p.socketId || p.userid || ''); }
-        function renderLockList() {
-            const contestants = currentParticipants.filter(p => !p.isHost && !p.isManager);
-            const div = document.getElementById('lockUsersList');
-            if (!contestants.length) { div.innerHTML = "<p>Chưa có người tham gia.</p>"; return; }
-            const locked = currentRoomData?.lockedUsers || [];
-            div.innerHTML = contestants.map(p => { const uid = resolveUserId(p); const val = uid || `uname:${encodeURIComponent(p.username)}`; const isLocked = locked.includes(val) || (p.username && locked.includes(p.username)); return `<div style="display:flex;align-items:center;"><input type="checkbox" value="${val}" style="height:1.25rem;width:1.25rem;margin-right:0.75rem;" ${isLocked ? 'checked' : ''}><label>${p.username}</label></div>`; }).join('');
-        }
-        function updateLockedUsersUI(locked) { if (!document.querySelector('#lockUsersList input')) renderLockList(); }
+            document.getElementById('buzzTableBody').innerHTML = `<tr><td style="width: 500px;" colspan="2">Đang reset chuông...</td></tr>`;
 
-        document.getElementById('createRoomBtn').onclick = () => { if (userId) socket.emit('createRoom'); };
-        document.getElementById('joinRoomBtn').onclick = () => openModal('joinRoomModal');
-        document.getElementById('closeJoinModalBtn').onclick = () => closeModal('joinRoomModal');
-        document.getElementById('confirmJoinBtn').onclick = () => { const r = document.getElementById('joinRoomCodeInput').value.trim(); const u = document.getElementById('joinUsernameInput').value.trim(); if (r && u && userId) socket.emit('joinRoomAsManager', { roomId: r, username: u, userId }); };
-        document.getElementById('showParticipantsBtn').onclick = () => { const pList = currentParticipants; document.getElementById('participantsList').innerHTML = pList.length ? pList.map(p => `<p style="font-weight:bold;padding:0.5rem;color:${p.isHost ? 'blue' : (p.isManager ? 'red' : 'black')}">${p.username}</p>`).join('') : "<p>Chưa có ai.</p>"; openModal('participantsModal'); };
-        document.getElementById('showLockUsersBtn').onclick = () => { renderLockList(); openModal('lockUsersModal'); };
-        document.getElementById('saveLockedUsersBtn').onclick = async () => { const l = []; document.querySelectorAll('#lockUsersList input:checked').forEach(c => l.push(c.value.startsWith('uname:') ? decodeURIComponent(c.value.slice(6)) : c.value)); await updateRoom({ lockedUsers: l }); closeModal('lockUsersModal'); };
-        document.getElementById('resetAllLocksBtn').onclick = async () => { await updateRoom({ lockedUsers: [] }); renderLockList(); };
-        document.getElementById('showBellOptionsBtn').onclick = () => { updateBellOptionsUI(currentRoomData.options); openModal('bellOptionsModal'); };
-        document.getElementById('saveBellOptionsBtn').onclick = async () => { const bc = document.querySelector('input[name="buzzCount"]:checked').value; const bm = document.querySelector('input[name="buzzMode"]:checked').value; await updateRoom({ options: { buzzCount: bc, buzzMode: bm } }); closeModal('bellOptionsModal'); };
-        document.getElementById('openBellInfiniteBtn').onclick = () => openBell(false);
-        document.getElementById('openBellTimedBtn').onclick = () => openBell(true);
-        document.getElementById('lockBellBtn').onclick = lockBell;
-        document.getElementById('resetBellBtn').onclick = async () => { document.getElementById('buzzTableBody').innerHTML = `<tr><td colspan="2">Đang reset...</td></tr>`; await updateRoom({ reset: true, bellStatus: currentRoomData?.bellStatus === 'open_infinite' ? 'open_infinite' : undefined }); };
+            // --- LOGIC MỚI: KIỂM TRA TRẠNG THÁI TRƯỚC KHI RESET ---
+            // Nếu chuông đang mở vĩnh viễn, ta muốn giữ nguyên trạng thái đó sau khi reset
+            let nextStatus = null;
+            if (currentRoomData && currentRoomData.bellStatus === 'open_infinite') {
+                nextStatus = 'open_infinite';
+            }
+
+            // Tạo dữ liệu gửi lên server
+            const payload = {
+                reset: true // Lệnh xóa danh sách bấm và tạo phiên mới
+            };
+
+            // Nếu đang mở vĩnh viễn, gửi kèm trạng thái này để Server không tự động khóa
+            if (nextStatus === 'open_infinite') {
+                payload.bellStatus = 'open_infinite';
+            }
+
+            await updateRoom(payload);
+            
+            // Nếu dùng chế độ hẹn giờ thì xóa timer đi (vì reset là làm mới)
+            if (bellTimer) clearTimeout(bellTimer);
+        }
+
+        async function resetAllLocks() {
+            // Thêm kiểm tra quyền truy cập
+            if (!currentRoomId || (!isHost && !isManager)) return;
+
+            await updateRoom({ lockedUsers: [] });
+            renderLockUsersList(); // Cập nhật lại UI ngay lập Tức
+        }
+
+        async function saveBellOptions() {
+            // Thêm kiểm tra quyền truy cập
+            if (!currentRoomId || (!isHost && !isManager)) return;
+
+            const buzzCount = document.querySelector('input[name="buzzCount"]:checked').value;
+            const buzzMode = document.querySelector('input[name="buzzMode"]:checked').value;
+            await updateRoom({ options: { buzzCount, buzzMode } });
+            closeModal('bellOptionsModal');
+        }
+
+        // --- GẮN SỰ KIỆN ---
+        document.getElementById('createRoomBtn').addEventListener('click', createRoom);
+
+        // GẮN SỰ KIỆN CHO MODAL MỚI
+        document.getElementById('joinRoomBtn').addEventListener('click', () => {
+            openModal('joinRoomModal');
+        });
+        document.getElementById('closeJoinModalBtn').addEventListener('click', () => {
+            closeModal('joinRoomModal');
+        });
+        document.getElementById('confirmJoinBtn').addEventListener('click', confirmJoinRoom);
+
+
+        document.getElementById('showParticipantsBtn').addEventListener('click', () => {
+            renderParticipantsList();
+            openModal('participantsModal');
+        });
+
+        // Sửa lỗi: Luôn render lại danh sách khóa chuông MỖI KHI MỞ
+        document.getElementById('showLockUsersBtn').addEventListener('click', () => {
+            renderLockUsersList();
+            openModal('lockUsersModal');
+        });
+
+        document.getElementById('showBellOptionsBtn').addEventListener('click', () => {
+            updateBellOptionsUI(currentRoomData.options);
+            openModal('bellOptionsModal');
+        });
+
+        document.getElementById('openBellInfiniteBtn').addEventListener('click', () => openBell(false));
+        document.getElementById('openBellTimedBtn').addEventListener('click', () => openBell(true));
+        document.getElementById('lockBellBtn').addEventListener('click', lockBell);
+        document.getElementById('resetBellBtn').addEventListener('click', resetBell);
+
+        document.getElementById('saveLockedUsersBtn').addEventListener('click', saveLockedUsers);
+        document.getElementById('resetAllLocksBtn').addEventListener('click', resetAllLocks);
+        document.getElementById('saveBellOptionsBtn').addEventListener('click', saveBellOptions);
+
+        // Đặt trạng thái ban đầu
+        document.getElementById('createRoomBtn').disabled = true;
+        document.getElementById('createRoomBtn').textContent = 'Đang kết nối Server...';
+        // Vô hiệu hóa nút tham gia ban đầu
+        document.getElementById('joinRoomBtn').disabled = true;
+        document.getElementById('joinRoomBtn').textContent = 'Đang kết nối...';
     </script>
 </body>
 
