@@ -87,7 +87,7 @@
             color: #FFFFFF;
         }
 
-        /* [FIX] Đổi font chữ Mã phòng */
+        /* [FIX] Font Arial cho Mã phòng */
         #roomCodeDisplay {
             display: none;
             padding: 0.75rem;
@@ -95,7 +95,7 @@
             color: white;
             border-radius: 0.5rem;
             font-size: 1.5rem;
-            font-family: Arial, Helvetica, sans-serif;
+            font-family: Arial, Helvetica, sans-serif !important;
             text-align: center;
             flex: 1 1 0%;
             font-weight: bold;
@@ -379,7 +379,7 @@
         </div>
         <div id="bellControlSection" style="display: none;">
             <div id="bellStatusDisplay">CHUÔNG ĐANG KHÓA</div>
-            <div id="hostTimerDisplay">0.000s</div>
+            <div id="hostTimerDisplay">Thời gian: 0.000s</div>
             <label for="bellTimeInput">Thời gian mở chuông (giây):</label>
             <input type="number" id="bellTimeInput" value="10">
             <div class="grid-container">
@@ -532,34 +532,33 @@
                 const elapsed = (now - start) / 1000;
                 const remaining = duration - elapsed;
                 if (remaining <= 0) {
-                    hostTimerDisplay.textContent = "0.000s";
+                    hostTimerDisplay.textContent = "Thời gian: 0.000s";
                     clearInterval(countdownInterval);
                     // Khi hết giờ, Host gửi lệnh khóa nếu chưa khóa
                     if (currentRoomData.bellStatus === 'open_timed' && (isHost || isManager)) {
                         lockBell();
                     }
                 } else {
-                    hostTimerDisplay.textContent = remaining.toFixed(3) + "s";
+                    hostTimerDisplay.textContent = "Thời gian: " + remaining.toFixed(3) + "s";
                 }
             };
             updateTimer();
             countdownInterval = setInterval(updateTimer, 33);
         }
 
-        function stopCountdown() { if (countdownInterval) clearInterval(countdownInterval); hostTimerDisplay.textContent = "0.000s"; }
+        function stopCountdown() { if (countdownInterval) clearInterval(countdownInterval); hostTimerDisplay.textContent = "Thời gian: 0.000s"; }
 
         async function openBell(isTimed = false) {
             if (!currentRoomId || (!isHost && !isManager)) return;
             const duration = parseInt(document.getElementById('bellTimeInput').value) || 10;
             let status = isTimed ? "open_timed" : "open_infinite";
 
-            // [FIX] Gửi duration trong payload để server lưu
+            // [FIX] Bỏ timestamp khỏi payload client, để Server tự set
             let payload = { bellStatus: status, reset: false, bellDuration: isTimed ? duration : null };
 
             if (isTimed) {
-                payload.bellOpenTimestamp = Date.now();
-                // Hiển thị ngay lập tức cho mượt
-                startCountdown(duration, payload.bellOpenTimestamp);
+                // Hiển thị ngay lập tức (Optimistic UI) với thời gian local, sau đó sẽ được sync lại bởi server
+                startCountdown(duration, Date.now());
             }
             await updateRoom(payload);
         }

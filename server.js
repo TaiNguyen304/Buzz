@@ -7,7 +7,7 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
     cors: {
-        origin: "*", // Cho phép mọi nguồn kết nối để tránh lỗi CORS khi test
+        origin: "*",
         methods: ["GET", "POST"]
     }
 });
@@ -38,7 +38,7 @@ function broadcastRoomState(roomId) {
         bellStatus: room.bellStatus,
         bellOpenTimestamp: room.bellOpenTimestamp,
         bellSessionId: room.bellSessionId,
-        bellDuration: room.bellDuration, // <--- [FIX] Gửi Duration xuống client
+        bellDuration: room.bellDuration,
         lockedUsers: room.lockedUsers,
         options: room.options,
         participants: participantsArray,
@@ -61,7 +61,7 @@ io.on('connection', (socket) => {
             hostId: socket.id,
             bellStatus: 'locked',
             bellOpenTimestamp: null,
-            bellDuration: null, // <--- [FIX] Khởi tạo
+            bellDuration: null,
             bellSessionId: Date.now().toString(),
             lockedUsers: [],
             options: { buzzCount: 'single', buzzMode: 'single-winner' },
@@ -93,7 +93,7 @@ io.on('connection', (socket) => {
             room.bellStatus = 'locked';
             room.buzzes = [];
             room.bellOpenTimestamp = null;
-            room.bellDuration = null; // Reset duration
+            room.bellDuration = null;
             room.bellSessionId = Date.now().toString();
         }
 
@@ -101,16 +101,12 @@ io.on('connection', (socket) => {
         if (data.bellStatus) {
             room.bellStatus = data.bellStatus;
             if (data.bellStatus.startsWith('open')) {
-                // Nếu client có gửi timestamp (để đồng bộ chính xác hơn) thì dùng, không thì dùng server time
-                room.bellOpenTimestamp = data.bellOpenTimestamp || Date.now();
+                // [FIX QUAN TRỌNG] Luôn dùng giờ Server, bỏ qua giờ Client gửi lên để tránh lệch giờ
+                room.bellOpenTimestamp = Date.now();
             }
         }
 
-        // [FIX] Cập nhật Duration nếu có
-        if (data.bellDuration) {
-            room.bellDuration = data.bellDuration;
-        }
-
+        if (data.bellDuration) room.bellDuration = data.bellDuration;
         if (data.lockedUsers !== undefined) room.lockedUsers = data.lockedUsers;
         if (data.options) room.options = { ...room.options, ...data.options };
 
@@ -163,11 +159,12 @@ io.on('connection', (socket) => {
         const iHaveBuzzed = room.buzzes.some(buzz => buzz.userId === userId && buzz.bellSessionId === bellSessionId);
         if (room.options.buzzCount === 'single' && iHaveBuzzed) return;
 
+        // Tính toán thời gian dựa trên giờ Server
         const buzzTime = (Date.now() - room.bellOpenTimestamp) / 1000;
         
-        // Kiểm tra nếu quá thời gian cho phép (Server side validation)
+        // Nếu chuông có giới hạn và bấm muộn hơn giới hạn (tính theo server) -> bỏ qua
         if (room.bellStatus === 'open_timed' && room.bellDuration && buzzTime > room.bellDuration) {
-             return; // Bỏ qua buzz đến muộn
+             return; 
         }
 
         room.buzzes.push({ userId, username, time: buzzTime, bellSessionId });

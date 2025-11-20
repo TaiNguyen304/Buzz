@@ -197,7 +197,7 @@
             <h2>Phòng <span id="roomCodeDisplay" style="color:blue;"></span></h2>
             <h3>Chào, <span id="usernameDisplay" style="color:purple;"></span></h3>
             <div class="buzzer-controls">
-                <div id="timerDisplay">0.000s</div>
+                <div id="timerDisplay">Thời gian: 0.000s</div>
                 <button id="buzzerBtn" disabled>Đang kết nối...</button>
                 <div id="buzzerStatus" class="status-waiting">Vui lòng chờ Host...</div>
             </div>
@@ -251,17 +251,17 @@
                 const elapsed = (now - start) / 1000;
                 const remaining = duration - elapsed;
                 if (remaining <= 0) {
-                    els.timer.textContent = "0.000s";
+                    els.timer.textContent = "Thời gian: 0.000s";
                     clearInterval(countdownInterval);
                     setBuzzerState("locked", "Hết giờ!");
                 } else {
-                    els.timer.textContent = remaining.toFixed(3) + "s";
+                    els.timer.textContent = "Thời gian: " + remaining.toFixed(3) + "s";
                 }
             };
             updateTimer();
             countdownInterval = setInterval(updateTimer, 33);
         }
-        function stopCountdown() { if (countdownInterval) clearInterval(countdownInterval); els.timer.textContent = "0.000s"; }
+        function stopCountdown() { if (countdownInterval) clearInterval(countdownInterval); els.timer.textContent = "Thời gian: 0.000s"; }
 
         function setBuzzerState(state, msg) {
             els.btn.disabled = true; els.btn.className = ""; els.status.className = "";
