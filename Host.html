@@ -30,7 +30,7 @@
 
         body {
             background-color: #F3F4F6;
-            font-family: Arial, Helvetica, sans-serif;
+            font-family: Arial, sans-serif;
             padding: 1.5rem;
         }
 
@@ -368,11 +368,14 @@
             color: #000000;
             /* Chữ đen */
             font-weight: bold;
-            font-size: 1.5rem;
+            font-size: 2rem;
+            /* Chữ to */
             padding: 0.75rem;
             border-radius: 0.5rem;
             text-align: center;
-            border: 2px solid #000;
+            border: 3px solid #000;
+            /* Viền đen */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
     </style>
 </head>
@@ -392,7 +395,7 @@
         <div id="bellControlSection" style="display: none;">
             <div id="bellStatusDisplay">CHUÔNG ĐANG KHÓA</div>
 
-            <div id="hostTimerDisplay">Thời gian: 0.000s</div>
+            <div id="hostTimerDisplay">0.000s</div>
 
             <label for="bellTimeInput">Thời gian mở chuông (giây):</label>
             <input type="number" id="bellTimeInput" value="10">
@@ -599,12 +602,12 @@
             updateBellOptionsUI(data.options);
             renderBuzzTable(data.buzzes || [], data.bellOpenTimestamp);
 
-            // --- XỬ LÝ TIMER ---
-            // Nếu trạng thái là mở có giới hạn VÀ có timestamp VÀ có duration
+            // --- XỬ LÝ TIMER CHO HOST ---
+            // Nếu đang mở chuông giới hạn, có thời gian bắt đầu và có duration
             if (data.bellStatus === 'open_timed' && data.bellOpenTimestamp && data.bellDuration) {
                 startCountdown(data.bellDuration, data.bellOpenTimestamp);
             } else {
-                stopCountdown();
+                stopCountdown(); // Tắt nếu bị khóa hoặc mở vô hạn
             }
 
             const lockedFromServer = Array.isArray(data.lockedUsers) ? data.lockedUsers : null;
@@ -618,25 +621,29 @@
 
             const updateTimer = () => {
                 const now = Date.now();
+                // Tính thời gian đã trôi qua
                 const elapsed = (now - startTime) / 1000;
+                // Thời gian còn lại
                 const remaining = duration - elapsed;
 
                 if (remaining <= 0) {
-                    hostTimerDisplay.textContent = "Thời gian: 0.000s";
+                    hostTimerDisplay.textContent = "0.000s";
                     clearInterval(countdownInterval);
                     // Host sẽ tự khóa bằng timeout trong openBell, hoặc server khóa.
                 } else {
-                    hostTimerDisplay.textContent = "Thời gian: " + remaining.toFixed(3) + "s";
+                    hostTimerDisplay.textContent = remaining.toFixed(3) + "s";
                 }
             };
+            // Chạy ngay 1 lần
             updateTimer();
+            // Cập nhật mỗi 30ms
             countdownInterval = setInterval(updateTimer, 30);
         }
 
         function stopCountdown() {
             if (countdownInterval) clearInterval(countdownInterval);
             hostTimerDisplay.style.display = 'none';
-            hostTimerDisplay.textContent = "Thời gian: 0.000s";
+            hostTimerDisplay.textContent = "0.000s";
         }
 
         // --- UTILS ---
@@ -837,7 +844,6 @@
             socket.emit('hostUpdateRoom', { roomId: currentRoomId, data: data });
         }
 
-        // --- CẬP NHẬT: THÊM DURATION VÀO PAYLOAD ---
         async function openBell(isTimed = false) {
             if (!currentRoomId || (!isHost && !isManager)) return;
 
@@ -849,10 +855,10 @@
                 const duration = parseInt(document.getElementById('bellTimeInput').value) || 10;
                 if (bellTimer) clearTimeout(bellTimer);
 
-                // Vẫn giữ timeout ở Host để đảm bảo tính năng tự khóa hoạt động tốt nhất
+                // Timeout khóa chuông phía Host
                 bellTimer = setTimeout(() => { lockBell(); }, duration * 1000);
 
-                // QUAN TRỌNG: Gửi duration lên server để Contestant biết
+                // QUAN TRỌNG: Gửi duration (tổng thời gian) lên server để Thí sinh có thể đếm ngược
                 payload.bellDuration = duration;
             }
 

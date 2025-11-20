@@ -216,20 +216,21 @@
             color: #FFFFFF;
         }
 
-        /* --- CSS MỚI CHO TIMER --- */
+        /* --- CSS MỚI: Ô ĐẾM NGƯỢC THỜI GIAN --- */
         #timerDisplay {
             display: none; /* Mặc định ẩn */
             width: 100%;
-            max-width: 500px; /* Cùng chiều rộng nút bấm */
+            max-width: 500px; /* Bằng chiều rộng nút bấm */
             background-color: #FFFF00; /* Màu vàng */
-            color: #000000; /* Chữ đen */
+            color: #000000; /* Chữ đen đậm */
             font-weight: bold;
-            font-size: 2rem; /* Chữ to */
+            font-size: 2.5rem; /* Chữ to rõ */
             padding: 0.5rem 0;
-            margin-bottom: 1rem;
             border-radius: 0.5rem;
-            border: 2px solid #000; /* Viền đen để nổi bật */
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border: 3px solid #000; /* Viền đen */
+            text-align: center;
+            margin-bottom: 0.5rem; /* Cách nút bấm 1 chút */
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
         }
     </style>
 </head>
@@ -381,37 +382,37 @@
             socket.emit('joinRoom', { roomId, username: inputUsername });
         }
 
-        // --- HÀM QUẢN LÝ TIMER ---
+        // --- LOGIC ĐẾM NGƯỢC THỜI GIAN ---
         function startCountdown(duration, startTime) {
-            // Xóa interval cũ nếu có
+            // Xóa timer cũ nếu có
             if (countdownInterval) clearInterval(countdownInterval);
             
-            timerDisplay.style.display = 'block'; // Hiện ô chữ nhật vàng
+            timerDisplay.style.display = 'block'; // Hiện ô vàng
             
             const updateTimer = () => {
                 const now = Date.now();
-                // Tính thời gian đã trôi qua (giây)
-                const elapsed = (now - startTime) / 1000;
-                // Thời gian còn lại
+                // Tính thời gian đã trôi qua
+                const elapsed = (now - startTime) / 1000; 
+                // Tính thời gian còn lại
                 const remaining = duration - elapsed;
 
                 if (remaining <= 0) {
                     timerDisplay.textContent = "Thời gian: 0.000s";
                     clearInterval(countdownInterval);
+                    // Hết giờ -> nhưng việc khóa nút sẽ do Server gửi trạng thái locked
                 } else {
                     timerDisplay.textContent = "Thời gian: " + remaining.toFixed(3) + "s";
                 }
             };
 
-            // Chạy ngay lập tức 1 lần để không bị delay
+            // Chạy ngay lập tức để hiển thị số
             updateTimer();
-            // Cập nhật mỗi 30ms
+            // Cập nhật liên tục mỗi 30ms
             countdownInterval = setInterval(updateTimer, 30);
         }
 
         function stopCountdown() {
             if (countdownInterval) clearInterval(countdownInterval);
-            timerDisplay.style.display = 'none'; // Ẩn đi khi không dùng
             timerDisplay.textContent = "Thời gian: 0.000s";
         }
 
@@ -452,15 +453,14 @@
                 return;
             }
 
-            // --- XỬ LÝ TIMER ---
-            // Nếu trạng thái là mở có giới hạn VÀ có timestamp VÀ có duration
+            // --- XỬ LÝ KÍCH HOẠT TIMER ---
+            // Chỉ hiện khi chuông mở có giới hạn (open_timed) và dữ liệu thời gian hợp lệ
             if (currentRoomData.bellStatus === 'open_timed' && currentRoomData.bellOpenTimestamp && currentRoomData.bellDuration) {
                 startCountdown(currentRoomData.bellDuration, currentRoomData.bellOpenTimestamp);
             } else {
-                // Nếu không phải chế độ đếm giờ, hoặc đã bị khóa -> Dừng timer
-                stopCountdown();
+                stopCountdown(); // Tắt timer nếu chuông khóa hoặc mở vĩnh viễn
             }
-            // -------------------
+            // ---------------------------
 
             // 1. Bị host khóa? 
             const lockedUsersList = currentRoomData.lockedUsers || [];
