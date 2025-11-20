@@ -106,7 +106,9 @@ io.on('connection', (socket) => {
             }
         }
 
-        if (data.bellDuration) room.bellDuration = data.bellDuration;
+        // [FIX] Cập nhật thời gian mở chuông, kể cả khi giá trị là null (tức là chuyển sang vô hạn)
+        if (data.bellDuration !== undefined) room.bellDuration = data.bellDuration; 
+
         if (data.lockedUsers !== undefined) room.lockedUsers = data.lockedUsers;
         if (data.options) room.options = { ...room.options, ...data.options };
 
