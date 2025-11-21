@@ -475,7 +475,7 @@
 
             if (state === 'active') {
                 buzzerBtn.disabled = false;
-                buzzerBtn.textContent = "BẤM CHUÔNG!";
+                buzzerBtn.textContent = "Bấm chuông!";
                 buzzerBtn.classList.add('active');
 
                 buzzerStatus.textContent = "Sẵn sàng bấm!";
@@ -506,17 +506,19 @@
             // 1. Bị host khóa? 
             const lockedUsersList = currentRoomData.lockedUsers || [];
             
-            // --- SỬA LỖI TẠI ĐÂY: Chuẩn hóa dữ liệu sang chuỗi để so sánh nhất quán ---
             const normalizedLockedList = lockedUsersList.map(item => String(item).trim());
             const normalizedUserId = String(userId).trim();
             const normalizedUsername = String(username).trim();
 
-            const isLockedByHost = normalizedLockedList.includes(normalizedUserId) || normalizedLockedList.includes(normalizedUsername);
-            // --- KẾT THÚC SỬA LỖI ---
+            const currentSocketId = String(socket.id).trim();
 
+            const isLockedByHost = 
+                normalizedLockedList.includes(normalizedUserId) || 
+                normalizedLockedList.includes(normalizedUsername) ||
+                normalizedLockedList.includes(currentSocketId);
 
             if (isLockedByHost) {
-                setBuzzerState("locked", "Bạn đã bị Host khóa chuông");
+                setBuzzerState("locked", "Bạn bị khóa chuông");
                 return;
             }
 
@@ -537,7 +539,7 @@
 
             // 4. Chuông đang mở (Sau khi đã kiểm tra bị khóa và chế độ single buzz)
             if (currentRoomData.bellStatus.startsWith('open')) {
-                setBuzzerState("active", "BẤM CHUÔNG!");
+                setBuzzerState("active", "Bấm chuông!");
                 return;
             }
 

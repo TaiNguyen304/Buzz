@@ -194,7 +194,7 @@ io.on('connection', (socket) => {
         socket.join(roomId);
         console.log(`Contestant ${username} joined room ${roomId}`);
 
-        socket.emit('roomJoined', { roomId, username });
+        socket.emit('roomJoined', { roomId, username, userId: userId });
         broadcastRoomState(roomId);
     });
 
