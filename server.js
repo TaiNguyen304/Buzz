@@ -10,7 +10,7 @@ const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
         // Cho phép frontend kết nối từ mọi nguồn
-        origin: "https://tainguyen304.github.io", 
+        origin: "*", // Để đơn giản cho việc test, bạn có thể để * hoặc giữ nguyên domain github của bạn
         methods: ["GET", "POST"]
     }
 });
@@ -72,10 +72,11 @@ io.on('connection', (socket) => {
             bellStatus: 'locked',
             bellOpenTimestamp: null,
             bellSessionId: Date.now().toString(),
-            lockedUsers: [], // Lưu trữ userId của người bị khóa
-            options: { buzzCount: 'single', buzzMode: 'single-winner' }, // Mặc định
+            lockedUsers: [], 
+            options: { buzzCount: 'single', buzzMode: 'single-winner' }, 
             participants: {},
-            buzzes: []
+            buzzes: [],
+            tempLockTimer: null // <--- MỚI: Biến lưu timer khóa tạm thời
         };
         
         // Thêm Host vào participants
@@ -94,38 +95,41 @@ io.on('connection', (socket) => {
 
     socket.on('hostUpdateRoom', ({ roomId, data }) => {
         const room = rooms[roomId];
-        if (!room) return; // 1. Kiểm tra phòng tồn tại
+        if (!room) return; 
 
         const isHost = (room.hostId === socket.id);
-        
-        // Lấy thông tin người gửi từ danh sách participants
         const participant = room.participants[socket.id]; 
-        
-        // Kiểm tra xem người đó có phải là Manager hay không
         const isManager = (participant && participant.isManager === true);
 
-        // Nếu người gửi không phải Host VÀ cũng không phải Manager -> Từ chối
         if (!isHost && !isManager) {
             console.warn(`[AUTH] Rejected update from ${socket.id}. Not Host or Manager.`);
             return; 
         }
+
+        // --- MỚI: Nếu Host can thiệp (Reset/Lock/Open), hủy bỏ bộ đếm tự động mở lại (nếu có) ---
+        if (room.tempLockTimer) {
+            clearTimeout(room.tempLockTimer);
+            room.tempLockTimer = null;
+        }
+        // ---------------------------------------------------------------------------------------
 
         // Xử lý lệnh reset chuông
         if (data.reset) {
             room.bellStatus = 'locked';
             room.buzzes = [];
             room.bellOpenTimestamp = null;
-            room.bellSessionId = Date.now().toString(); // Tạo session mới
+            room.bellSessionId = Date.now().toString(); 
         }
 
         // Cập nhật trạng thái chuông
         if (data.bellStatus) {
             room.bellStatus = data.bellStatus;
             if (data.bellStatus.startsWith('open')) {
+                // Chỉ cập nhật timestamp nếu timestamp chưa có (để giữ tính liên tục nếu muốn)
+                // Hoặc luôn cập nhật mới khi Host bấm mở. Logic cũ là luôn cập nhật.
                 room.bellOpenTimestamp = Date.now();
-                // Không tạo session mới khi mở lại chuông trong cùng 1 vòng
-                // session mới chỉ tạo khi Host bấm Reset (đã xử lý ở trên)
             } else if (data.bellStatus === 'locked') {
+                // Host chủ động khóa
             }
         }
 
@@ -142,7 +146,7 @@ io.on('connection', (socket) => {
         broadcastRoomState(roomId);
     });
     
-    // --- MANAGER EVENTS (MỚI) ---
+    // --- MANAGER EVENTS ---
     socket.on('joinRoomAsManager', ({ roomId, username, userId }) => {
         const room = rooms[roomId];
         if (!room) {
@@ -150,30 +154,24 @@ io.on('connection', (socket) => {
             return;
         }
 
-        // 1. Kiểm tra trùng username (Không cho trùng với Host, Manager, hay Contestant khác)
         const usernameExists = Object.values(room.participants).some(p => p.username === username);
         if (usernameExists) {
             socket.emit('joinRoomError', { message: 'Username đã tồn tại trong phòng. Vui lòng chọn tên khác.' });
             return;
         }
 
-        // 2. Thêm Quản lý vào phòng
         room.participants[socket.id] = { 
             userId: userId, 
             username: username, 
             isHost: false,
-            isManager: true // <<< Dòng quan trọng: đánh dấu là Quản lý
+            isManager: true 
         };
         userIdMap[socket.id] = userId;
 
         socket.join(roomId);
         console.log(`Manager ${username} joined room ${roomId}`);
 
-        // 3. Phản hồi thành công về cho Manager (Host.html)
-        // Gửi toàn bộ roomState để client Host.html biết mà cập nhật giao diện điều khiển
         socket.emit('joinedAsManager', { roomId, username, roomState: rooms[roomId] }); 
-        
-        // 4. Broadcast trạng thái mới cho tất cả mọi người (bao gồm Host)
         broadcastRoomState(roomId);
     });
 
@@ -186,10 +184,9 @@ io.on('connection', (socket) => {
             return;
         }
         
-        const userId = socket.id; // Dùng socket.id làm userId tạm thời cho Contestant
+        const userId = socket.id; 
         userIdMap[socket.id] = userId;
 
-        // Thêm Contestant vào phòng
         room.participants[socket.id] = { userId: userId, username: username, isHost: false, isManager: false };
         socket.join(roomId);
         console.log(`Contestant ${username} joined room ${roomId}`);
@@ -200,25 +197,25 @@ io.on('connection', (socket) => {
 
     socket.on('buzz', ({ roomId, username, userId, bellSessionId }) => {
         const room = rooms[roomId];
+        // Kiểm tra cơ bản
         if (!room || room.bellStatus.startsWith('locked') || room.bellSessionId !== bellSessionId) return;
 
         const participant = room.participants[socket.id];
         if (!participant) return;
 
-        // NEW LOGIC: KIỂM TRA NGƯỜI CHƠI BỊ KHÓA CHUÔNG
         if (room.lockedUsers.includes(participant.userId)) {
             console.log(`[BELL LOCK] User ${username} is locked and cannot buzz.`);
             return; 
         }
 
-        // 1. Kiểm tra Buzz Count (Mỗi người chỉ được bấm 1 lần/vòng)
+        // 1. Kiểm tra Buzz Count 
         const iHaveBuzzed = room.buzzes.some(buzz => buzz.userId === userId && buzz.bellSessionId === bellSessionId);
         if (room.options.buzzCount === 'single' && iHaveBuzzed) {
             console.log(`User ${username} tried to buzz again (single buzz mode).`);
             return;
         }
 
-        // 2. Xử lý Buzz hợp lệ
+        // 2. Ghi nhận Buzz
         const buzzTime = (Date.now() - room.bellOpenTimestamp) / 1000;
         
         room.buzzes.push({ 
@@ -230,44 +227,76 @@ io.on('connection', (socket) => {
 
         console.log(`Buzz received from ${username} at ${buzzTime.toFixed(3)}s`);
 
-        // 3. Xử lý Buzz Mode (Một người thắng: Khóa chuông ngay lập tức)
+        // 3. Xử lý Buzz Mode
         if (room.options.buzzMode === 'single-winner') {
-            room.bellStatus = 'locked_winner';
-            console.log(`Single-winner mode: Bell locked after buzz by ${username}`);
+            
+            // --- LOGIC MỚI: Xử lý 5 giây Cooldown ---
+            // Điều kiện: Single Winner + Multiple Buzz + Open Infinite
+            const isMultipleBuzz = room.options.buzzCount === 'multiple';
+            const isInfiniteOpen = room.bellStatus === 'open_infinite'; // Lúc bấm thì trạng thái vẫn đang là open_infinite
+
+            if (isMultipleBuzz && isInfiniteOpen) {
+                // a. Khóa tạm thời
+                room.bellStatus = 'locked_winner';
+                console.log(`Single-winner (Multi-buzz): Bell temp locked for 5s by ${username}`);
+                
+                // b. Broadcast trạng thái khóa ngay lập tức
+                broadcastRoomState(roomId);
+
+                // c. Đặt hẹn giờ mở lại
+                if (room.tempLockTimer) clearTimeout(room.tempLockTimer);
+                
+                room.tempLockTimer = setTimeout(() => {
+                    // Kiểm tra xem phòng còn tồn tại và trạng thái vẫn đang bị khóa (bởi lượt bấm này) hay không
+                    if (rooms[roomId] && rooms[roomId].bellStatus === 'locked_winner') {
+                        rooms[roomId].bellStatus = 'open_infinite';
+                        // Lưu ý: Không reset buzzes, không reset bellSessionId, 
+                        // giữ nguyên bellOpenTimestamp để tính thời gian tiếp tục
+                        
+                        console.log(`Room ${roomId} auto-reopened after 5s.`);
+                        broadcastRoomState(roomId);
+                        rooms[roomId].tempLockTimer = null;
+                    }
+                }, 5000); // 5000ms = 5 giây
+
+            } else {
+                // Logic cũ: Khóa hẳn
+                room.bellStatus = 'locked_winner';
+                console.log(`Single-winner mode: Bell locked permanently by ${username}`);
+                broadcastRoomState(roomId);
+            }
+
+        } else {
+            // Chế độ All Buzz: Không làm gì cả, chỉ cập nhật danh sách
+            broadcastRoomState(roomId);
         }
-        
-        broadcastRoomState(roomId);
     });
 
     // --- DISCONNECT ---
     socket.on('disconnect', () => {
         console.log(`Client disconnected: ${socket.id}`);
         
-        // 1. Kiểm tra nếu là Host
         for (const roomId in rooms) {
             if (rooms[roomId].hostId === socket.id) {
                 console.log(`Host of room ${roomId} disconnected. Room deleted.`);
                 io.to(roomId).emit('roomClosed', { message: 'Host đã rời phòng.' });
                 
-                // Xóa phòng
-                delete rooms[roomId];
+                // Xóa timer nếu có
+                if (rooms[roomId].tempLockTimer) clearTimeout(rooms[roomId].tempLockTimer);
                 
-                // Xóa userId map
+                delete rooms[roomId];
                 delete userIdMap[socket.id];
                 return;
             }
             
-            // 2. Kiểm tra nếu là Contestant hoặc Manager
             if (rooms[roomId].participants[socket.id]) {
                 const username = rooms[roomId].participants[socket.id].username;
-                // Cập nhật logic: Nếu là Manager, vẫn thông báo là đã ngắt kết nối
                 const role = rooms[roomId].participants[socket.id].isManager ? 'Manager' : 'Contestant';
 
                 console.log(`${role} ${username} in room ${roomId} disconnected.`);
                 delete rooms[roomId].participants[socket.id];
                 delete userIdMap[socket.id];
                 
-                // Cập nhật trạng thái phòng cho Host
                 broadcastRoomState(roomId);
                 return;
             }
@@ -275,9 +304,6 @@ io.on('connection', (socket) => {
     });
 });
 
-
 server.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
-    console.log(`Access Host: http://localhost:${PORT}/Host.html`);
-    console.log(`Access Contestant: http://localhost:${PORT}/Contestant.html`);
 });
