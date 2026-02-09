@@ -378,7 +378,7 @@
 
 <body class="bg-gray-100 font-sans p-6">
 
-    <audio id="buzzSound" src="https://www.soundjay.com/buttons/sounds/button-3.mp3" preload="auto"></audio>
+    <audio id="buzzSound" src="buzzer.mp3" preload="auto"></audio>
 
     <div class="container">
         <h1>Bảng điều khiển Host</h1>
@@ -892,6 +892,10 @@
         document.getElementById('createRoomBtn').textContent = 'Đang kết nối Server...';
         document.getElementById('joinRoomBtn').disabled = true;
         document.getElementById('joinRoomBtn').textContent = 'Đang kết nối...';
+
+        document.addEventListener("contextmenu", function (e) {
+      e.preventDefault();
+    });
     </script>
 </body>
 

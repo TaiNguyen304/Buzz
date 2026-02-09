@@ -225,7 +225,7 @@
 
 <body class="bg-gray-100 text-gray-900 font-sans p-6 flex items-center justify-center min-h-screen">
 
-    <audio id="buzzSound" src="https://www.soundjay.com/buttons/sounds/button-3.mp3" preload="auto"></audio>
+    <audio id="buzzSound" src="buzzer.mp3" preload="auto"></audio>
 
     <div class="container">
 
@@ -421,6 +421,10 @@
         document.getElementById('joinRoomBtn').addEventListener('click', joinRoom);
         buzzerBtn.addEventListener('click', handleBuzzerClick);
         setBuzzerState("locked", "Vui lòng chờ Host...");
+
+        document.addEventListener("contextmenu", function (e) {
+      e.preventDefault();
+    });
     </script>
 </body>
 
